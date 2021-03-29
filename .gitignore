@@ -1,4 +1,6 @@
-AIRPLANZ.gb
+*.gb
+*.sav
+*.o
 build.bat
 main.o
 run.bat
