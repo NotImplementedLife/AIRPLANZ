@@ -23,7 +23,7 @@ INCLUDE "source/tilemap.asm"
 Start:
 
 	; init scroll flag
-	ld a, SCROLL_FLAG_0 - 112
+	ld a, SCROLL_FLAG_0 ;- 112
 	ld [scrollFlag], a
     ; Turn off the LCD
 	call waitForVBlank
@@ -58,27 +58,27 @@ Start:
     ld [rBGP], a    
 .loop		    
 	call updateMapScroll
-	ld a, [scrollFlag]
-	cp a, SCROLL_FLAG_0
-	jr nz, .draw
-	ld b, 100
-.wait
-	call waitForVBlank
-	dec b
-	ld a, b
-	cp a, 0	
-	jr nz, .wait
-	ld a, [rSCX]
-	cp a, 0
-	jr z, .set112
-.set0
-	ld a, SCROLL_FLAG_0 + 112
-	ld [scrollFlag], a
-	jr .draw
-.set112
-	ld a, SCROLL_FLAG_0 - 112
-	ld [scrollFlag], a
-	jr .draw
+;	ld a, [scrollFlag]
+;	cp a, SCROLL_FLAG_0
+;	jr nz, .draw
+;	ld b, 100
+;.wait
+;	call waitForVBlank
+;	dec b
+;	ld a, b
+;	cp a, 0	
+;	jr nz, .wait
+;	ld a, [rSCX]
+;	cp a, 0
+;	;jr z, .set112
+;.set0
+	;ld a, SCROLL_FLAG_0 + 112
+	;ld [scrollFlag], a
+	;jr .draw
+;.set112
+	;ld a, SCROLL_FLAG_0 - 112
+	;ld [scrollFlag], a
+	;jr .draw
 .draw
     ; Turn screen on, display background
     ld a, %10000001
