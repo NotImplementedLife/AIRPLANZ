@@ -17,7 +17,7 @@ drawTitleBackground:
 	ld b, a
 	inc c	
 	ld a, c
-	cp a, 5
+	cp a, 7
 	ld a, d	
 	jr nz, .drawTitleTile	
 	ld hl, SCREEN_PTR+12*$20+8

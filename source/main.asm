@@ -12,6 +12,9 @@ SECTION "Work Ram", WRAM0[$C000]
 scrollFlag::
 	DS 1
 
+INCLUDE "inc/oam.asm"
+
+
 SECTION "Main", ROM0
 
 INCLUDE "inc/memory.asm"
@@ -19,6 +22,7 @@ INCLUDE "inc/vblank.asm"
 
 INCLUDE "source/title.asm"
 INCLUDE "source/tilemap.asm"
+INCLUDE "source/planes.asm"
 
 Start:
 
@@ -26,10 +30,13 @@ Start:
 	ld a, SCROLL_FLAG_0 ;- 112
 	ld [scrollFlag], a
     ; Turn off the LCD
-	call waitForVBlank
+	call waitForVBlank	
 	
     xor a
     ld [rLCDC],a 
+	
+	; move DMA subroutine to HRAM
+	call CopyDMARoutine
 
     ; copy the font to VRAM	
     ld hl, CHARS_PTR
@@ -43,19 +50,35 @@ Start:
     ld bc, TilesetEnd - Tileset
 	call loadMemory	
 		    
-	;call drawTitleBackground
+	; draw main scene to screen
+	call drawTitleBackground
 	ld hl, SCREEN_PTR
 	ld de, Tilemap
 	ld bc, TilemapEnd - Tilemap
-	call loadMemory	
+	call loadMemory			
+	
+	;call setPlane
+	
+	ld hl, planesOamData
+	ld de, planesTemplate
+	ld bc, 160
+	call loadMemory		
+	
 	
 	xor a ; ld a, 0		
     ld [rSCX], a	
     ld [rSCY], a
 	
+	ld  a, HIGH(planesOamData)
+	call hOAMDMA
+	
 	; Init display registers
     ld a, %00110110
     ld [rBGP], a    
+	 ; Turn screen on, display background
+    ld a, %10000011
+    ld [rLCDC], a	
+	
 .loop		    
 	call updateMapScroll
 ;	ld a, [scrollFlag]
@@ -79,11 +102,8 @@ Start:
 	;ld a, SCROLL_FLAG_0 - 112
 	;ld [scrollFlag], a
 	;jr .draw
-.draw
-    ; Turn screen on, display background
-    ld a, %10000001
-    ld [rLCDC], a	
-	
+.draw   
+		
 	call waitForVBlank
     
     jr .loop
