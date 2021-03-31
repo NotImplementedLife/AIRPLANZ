@@ -2,23 +2,9 @@ SECTION "OAM Data", WRAM0[$C100] ;, ALIGN[8]
 
 ; here goes the OAM data [writeable | Y,X,_,_]
 planesOamData:
-	DS 40
-
-; planeXData:
-;
-; byte 0: exists ? 1 : 0
-; byte 1: Y (0-9)
-; byte 2: X (0-9)
-; byte 3: Orientation (0=Up 1=Right 2=Down 3=Left)
-plane1Data:
-	DS 4
-plane2Data:
-	DS 4
-plane3Data:
-	DS 4
+	DS 160
 	
-SECTION "Planes Template", ROM0
-
+SECTION "Planes Template", ROM0, ALIGN[8]
 planesTemplate:         ; CellType |  Pixel coordinates relative to top-left (X,Y)
 FacingUp:               ;-----------------------------------------------------------
 DB $28, $48, $E0, $00,  ;    H     |	(2,0)
@@ -65,6 +51,16 @@ DB $30, $78, $EC, $40,  ;    T0    |	(3,1)
 DB $38, $78, $ED, $00,  ;    B2    |	(3,2)
 DB $40, $78, $EC, $00,  ;    T0    |	(3,3)
 				        ;-----------------------------------------------------------
+
+SECTION "Plane Parts Relative Coordinates", ROM0
+PPRC_UP:     ; Orientation = 1
+DB 0, 2,   1, 0,   1, 1,   1, 2,   1, 3,   1, 4,   2, 2,   3, 1,   3, 2,   3, 3
+PPRC_RIGHT:  ; Orientation = 2
+DB 2, 3,   0, 2,   1, 2,   2, 2,   3, 2,   4, 2,   2, 1,   1, 0,   2, 0,   3, 0
+PPRC_DOWN:   ; Orientation = 3
+DB 3, 2,   2, 0,   2, 1,   2, 2,   2, 3,   2, 4,   1, 2,   0, 1,   0, 2,   0, 3
+PPRC_LEFT:   ; Orientation = 4
+DB 2, 0,   0, 1,   1, 1,   2, 1,   3, 1,   4, 1,   2, 2,   1, 3,   2, 3,   3, 3
 
 
 ; Thxx : https://gbdev.gg8.se/wiki/articles/OAM_DMA_tutorial

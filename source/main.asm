@@ -9,9 +9,29 @@ SECTION "Work Ram", WRAM0[$C000]
 ; tells the cpu when to scroll map from "YOU" to "OP" and vice-versa
 ; scrollFlag > $80 ==> scroll from (112,112) to (0,0)
 ; scrollFlag < $80 ==> scroll from (0,0) to (112,112)
-scrollFlag::
+scrollFlag:
 	DS 1
+backup1:
+	DS 1
+backup2:
+	DS 1
+	
+currentPlane: ; 0, 1, 2
+	DS 1 
 
+; planeXData:
+;
+; byte 0: visible ? 1 : 0
+; byte 1: Y (0-9)
+; byte 2: X (0-9)
+; byte 3: Orientation (0=Up 1=Right 2=Down 3=Left)
+plane1Data:
+	DS 4
+plane2Data:
+	DS 4
+plane3Data:
+	DS 4
+	
 INCLUDE "inc/oam.asm"
 
 
@@ -55,9 +75,7 @@ Start:
 	ld hl, SCREEN_PTR
 	ld de, Tilemap
 	ld bc, TilemapEnd - Tilemap
-	call loadMemory			
-	
-	;call setPlane
+	call loadMemory				
 	
 	ld hl, planesOamData
 	ld de, planesTemplate
@@ -68,6 +86,24 @@ Start:
 	xor a ; ld a, 0		
     ld [rSCX], a	
     ld [rSCY], a
+	
+	;ld a, 0
+	;ld [currentPlane], a
+	;call chPlaneVisibility	
+	ld a, PLANE_ID_1
+	call chPlaneVisibility	
+	ld a, PLANE_ID_2
+	call chPlaneVisibility		
+	ld a, PLANE_ID_3
+	call chPlaneVisibility		
+	
+	ld a, PLANE_ID_0
+	ld d, PLANE_DOWN
+	call placePlane
+	
+	ld a, PLANE_ID_0
+	ld d, PLANE_UP
+	call placePlane
 	
 	ld  a, HIGH(planesOamData)
 	call hOAMDMA
