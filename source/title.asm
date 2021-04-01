@@ -17,13 +17,14 @@ drawTitleBackground:
 	ld b, a
 	inc c	
 	ld a, c
-	cp a, 7
+	cp a, 5
 	ld a, d	
 	jr nz, .drawTitleTile	
-	ld hl, SCREEN_PTR+12*$20+8
+	ld hl, SCREEN_PTR+10*$20
     ld de, Str_PLAY
     call copyString
 	ld hl, SCREEN_PTR+16*$20
     ld de, Str_CRB
     call copyString
 	ret
+	

@@ -25,48 +25,24 @@ goToPlaneOamData:
 	ret ;goToPlaneOamData
 ;--------------------------------------------------------------------
 	
-; chPlaneVisibility
-; toggle plane visibility
-; Argument: a = target plane [0..2]
-chPlaneVisibility:	
-	call goToPlaneOamData
-	ld a, l
-	add 3    ; access byte 3 of sprite
-	ld l, a
-	ld a, 10
-.chPlaneV_SetFlags:
-	; backup8 stores the loop counter
-	ld [backup1],a
-	
-	; hl ^= $80 ; toggle show/hide
-	ld a, [hl]
-	xor a, $80	
-	ld [hl], a
-	
-	; hl+=4
-	ld a, l
-	add a, 4
-	ld l, a
-	; >>> hl = XX00 .. XXA0, there is 
-	; >>> no need to check the carry 
-	;jr nc, .chPlaneV_restoreA 
-	;inc h
-	
-.chPlaneV_restoreA:
-	ld a, [backup1]
-	dec a	
-	cp 0
-	jr nz, .chPlaneV_SetFlags
-	ret ; chPlaneVisibility
-;--------------------------------------------------------------------
-
-	
 ; placePlane
 ; a = target plane [0..2]
 ; b = Y
 ; c = X
 ; d = Orientation
 placePlane:	
+	ld [backup1], a
+	ld h, HIGH(planesY)
+	add a, LOW(planesY)
+	ld l, a
+	ld [hl], b
+	sub a, LOW(planesY)	
+	
+	ld h, HIGH(planesX)
+	add a, LOW(planesX)
+	ld l, a
+	ld [hl], c
+	ld a, [backup1]
 	call goToPlaneOamData
 	ld a, d	
 	ld de, planesTemplate			
@@ -145,17 +121,27 @@ placePlane:
 	inc e
 	
 	; hl+=2
-	ld a, l
-	add a, 2
-	ld l, a
+	inc l
+	inc l
+	
+	;ld a, l
+	;add a, 2
+	;ld l, a
 	
 .chPlaneV_restoreA:
 	ld a, [backup1]
 	dec a	
 	cp 0
-	jr nz, .placePlane_SetCoords
-	
-	
+	jr nz, .placePlane_SetCoords	
+
 	ret ; placePlane
 ;--------------------------------------------------------------------
-	
+
+; hidePlane
+; a = target plane [0..2]
+hidePlane:
+	ld b, 144
+	ld c, 160
+	ld d, 1
+	call placePlane
+	ret
