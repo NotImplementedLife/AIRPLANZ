@@ -15,6 +15,8 @@ backup1:
 	DS 1
 backup2:
 	DS 1
+backup3:
+	DS 1
 	
 currentPlane: ; 0, 1, 2
 	DS 1 
@@ -98,15 +100,19 @@ Start:
 	call chPlaneVisibility		
 	
 	ld a, PLANE_ID_0
+	ld b, 24
+	ld c, 48
 	ld d, PLANE_DOWN
 	call placePlane
 	
-	ld a, PLANE_ID_0
-	ld d, PLANE_UP
-	call placePlane
+	;ld a, PLANE_ID_0
+	;ld d, PLANE_UP
+	;call placePlane
 	
+	;halt
 	ld  a, HIGH(planesOamData)
 	call hOAMDMA
+	
 	
 	; Init display registers
     ld a, %00110110
