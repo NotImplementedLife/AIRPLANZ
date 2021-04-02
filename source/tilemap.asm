@@ -25,8 +25,10 @@ updateMapScroll:
 	ret
 .checkBoardState
 	ld a, [scrollInvalidate]
-	cp a, 0
+	cp a, 0	
 	ret z
+	ld a, 0
+	ld [scrollInvalidate], a
 	call showBoard		
 	ret
 	

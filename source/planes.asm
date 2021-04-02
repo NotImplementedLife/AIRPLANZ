@@ -189,7 +189,7 @@ initPlanes:
 	ld a, 0
 	ld [crtPlane], a
 	call crtSetAddress	
-	ld bc, $A0A0
+	ld bc, $0000
 	ld d, $00
 	call crtSetPosition
 	call crtCreateOAM
@@ -197,7 +197,7 @@ initPlanes:
 	ld a, 1
 	ld [crtPlane], a
 	call crtSetAddress	
-	ld bc, $A0A0
+	ld bc, $0000
 	ld d, $00
 	call crtSetPosition
 	call crtCreateOAM
@@ -205,16 +205,19 @@ initPlanes:
 	ld a, 2
 	ld [crtPlane], a
 	call crtSetAddress
-	ld bc, $A0A0
+	ld bc, $0000
 	ld d, $00
 	call crtSetPosition
-	call crtCreateOAM
+	call crtCreateOAM	
 	
 	ld a, [crtTurn]
 	cp a, 0	
 	ld a, 1
 	ld [crtTurn], a
-	jr z, .init		
+	jr z, .init	
+
+	ld a, 0
+	ld [crtPlane], a	
 	ret
 	
 ;--------------------------------------------------------------------	
@@ -380,25 +383,60 @@ crtNext:
 	inc a
 	ld [crtPlane], a
 	call crtSetAddress
-	ld b, 0
-	ld c, 0
-	ld d, PLANE_UP
-	call crtSetPosition		
-	call crtCreateOAM	
+	call crtCreateOAM
+	call showBoard
 	ret
 	
 crtUndo:
 	ld a, [crtPlane]
 	cp 0
-	ret z
-	call crtHide
+	ret z	
 	ld a, [crtPlane]
 	dec a	
 	ld [crtPlane], a
 	call crtSetAddress	
 	call crtCreateOAM
+	call showBoard
 	ret
 	
+crtBlink:
+	ld a, [scrollFlag]
+	cp SCROLL_FLAG_0
+	ret nz
+	call crtLoadAddressToHL
+	ld a, l
+	add 13
+	ld l, a
+	
+	ld a, 10
+.setCoords:
+	; backup1 stores the loop counter
+	ld [backup1],a	
+	
+	inc l ; skip Y
+	inc l ; skip X
+	inc l ; skip T	
+	ld a, [hl]
+	xor $80
+	ld [hli], a ; change Priority	
+		
+	ld a, [backup1]
+	dec a	
+	cp 0
+	jr nz, .setCoords	
+	
+	;prepare to Write OAM
+	ld a, l
+	sub 40
+	ld l, a	
+	; perform de = hl :
+	ld a, h
+	ld d, a
+	ld a, l
+	ld e, a		
+	call crtWriteToOamData
+	
+	ret
 	
 	
 	

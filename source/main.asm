@@ -112,29 +112,7 @@ Start:
 	call loadMemory	
 	
 	call clearOAM
-	call initPlanes	
-	
-	ld a, 1
-	ld [crtTurn], a
-	ld a, 0
-	ld [crtPlane], a
-	call crtSetAddress		
-	ld b, 0
-	ld c, 0
-	ld d, PLANE_UP
-	call crtSetPosition		
-	call crtCreateOAM		
-		
-	ld a, 0
-	ld [crtTurn], a
-	ld a, 0
-	ld [crtPlane], a
-	call crtSetAddress		
-	ld b, 0
-	ld c, 0
-	ld d, PLANE_DOWN
-	call crtSetPosition		
-	call crtCreateOAM			
+	call initPlanes		
 	
 	
 	ld a, 0
@@ -158,7 +136,7 @@ Start:
 
 	
 	ld a, 0	
-.boardLoop		    	
+.planePlacementLoop		    	
 	call updateJoypadState
 	call updateMapScroll
 	
@@ -193,12 +171,13 @@ Start:
 	
 	ld   a, [wJoypadState]
 	and a, PADF_START			
-	call nz, nextBoard
+	call nz, nextBoard	
+	call crtBlink
 .draw					  
-	call waitForVBlank
+	call waitForVBlank	
 	ld  a, HIGH(planesOamData)
-	call hOAMDMA	
-    jr .boardLoop
+	call hOAMDMA	    	
+	jr .planePlacementLoop
 
 
 
