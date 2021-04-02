@@ -1,147 +1,405 @@
-; goToPlaneOamData
-; based on register a value, points hl to the beginning 
-; of plane #{a} OAM data in WRAM
-goToPlaneOamData:
-	ld h, HIGH(planesOamData)
-	cp a, 3
-	jr z, .goToPlane_3
-	cp a, 2
-	jr z, .goToPlane_2
-	cp a, 1
-	jr z, .goToPlane_1
+; ROUTINE :: crtSetAddress
+; 	based on crtTurn and crtPlane, point crtAddress to 
+; 	P<crtTurn>_Plane<crtPlane>
+crtSetAddress:
+	ld a, [crtTurn]	
 	cp a, 0
-	jr z, .goToPlane_0
-.goToPlane_3:
-	ld l, 3 * 40	
-	ret
-.goToPlane_2:
-	ld l, 2 * 40	
-	ret
-.goToPlane_1:
-	ld l, 1 * 40	
-	ret
-.goToPlane_0:
-	ld l, 0 * 40
-	ret ;goToPlaneOamData
+	jr nz, .setBoard1
+.setBoard0
+	ld hl, P1_Plane0	
+	jr .choosePlane
+.setBoard1
+	ld hl, P2_Plane0	
+.choosePlane
+	ld a, [crtPlane]
+	cp a, 0
+	jr z, .fin	
+	ld bc, 53
+	add hl, bc
+	cp a, 1
+	jr z, .fin	
+	add hl, bc
+.fin
+	ld a, h
+	ld [crtAddress], a
+	ld a, l
+	ld [crtAddress+1], a
+	ret ; crtSetAddress
 ;--------------------------------------------------------------------
-	
-; placePlane
-; a = target plane [0..2]
+
+crtLoadAddressToHL:
+	ld a, [crtAddress]
+	ld h, a
+	ld a, [crtAddress + 1]
+	ld l, a
+	ret
+;--------------------------------------------------------------------
+
+; ROUTINE :: crtSetPosition
 ; b = Y
 ; c = X
-; d = Orientation
-placePlane:	
-	ld [backup1], a
-	ld h, HIGH(planesY)
-	add a, LOW(planesY)
-	ld l, a
-	ld [hl], b
-	sub a, LOW(planesY)	
-	
-	ld h, HIGH(planesX)
-	add a, LOW(planesX)
-	ld l, a
-	ld [hl], c
-	ld a, [backup1]
-	call goToPlaneOamData
-	ld a, d	
-	ld de, planesTemplate			
-	cp a, PLANE_LEFT
-	jr z, .setOrientationLeft
-	cp a, PLANE_DOWN
-	jr z, .setOrientationDown
-	cp a, PLANE_RIGHT
-	jr z, .setOrientationRight		
-	cp a, PLANE_UP
-	jr .setOrientationUp
-	jr .setOrientationEnd
-.setOrientationLeft:
-	ld a, 3*20
-	ld [backup1], a
-	ld a, e
-	add 40*3	
-	jr .setOrientationEnd
-.setOrientationDown:	
-	ld a, 2*20
-	ld [backup1], a
-	ld a, e
-	add 40*2
-	jr .setOrientationEnd
-.setOrientationRight:
-	ld a, 1*20
-	ld [backup1], a
-	ld a, e
-	add 40*1
-	jr .setOrientationEnd
-.setOrientationUp:
-	ld a, 0*20
-	ld [backup1], a
-	ld a, e
-	add 40*0
-	jr .setOrientationEnd
-.setOrientationEnd:
-	ld e, a
+; d = O
+crtSetPosition:		
+	call crtLoadAddressToHL
 	ld a, b
-	ld [backup2], a
+	ld [hli], a
 	ld a, c
-	ld [backup3], a
-	; now we have de to the wanted plane template
+	ld [hli], a
+	ld a, d
+	ld [hl], a
+	ret
+;--------------------------------------------------------------------
+
+; de = source
+crtWriteToOamData:
 	ld bc, 40 ; size of a plane OAM	
+	ld hl, planesOamData	
+	ld a, [crtPlane]
+	
+	cp a, 0
+	jr z, .fin	
+	ld bc, 40
+	add hl, bc
+	cp a, 1
+	jr z, .fin	
+	add hl, bc
+.fin		
 	call loadMemory	
-	; repoint hl to the beginning of plane OAM 
+	ret
+;--------------------------------------------------------------------	
+
+
+; ROUTINE :: crtCreateOAM
+; render OAM data
+crtCreateOAM:
+	call crtLoadAddressToHL
+	inc l ; skip X
+	inc l ; skip Y
+	ld a, [hli]
+	ld e, a
+	ld d, HIGH(planesTemplate0)
+	ld a, [crtTurn]
+	cp a, 0
+	jr z, .keepTemplate0
+	ld d, HIGH(planesTemplate1)
+.keepTemplate0
 	ld a, l
-	sub 40 ; advance to byte 1 [Y coord]
+	add 10 ; skip HITS
+	ld l, a
+	ld bc, PLANE_OAM_SIZE
+	call loadMemory
+
+	; update coordinates
+	ld a, l
+	sub 53
+	ld l, a
+	ld a, [hli]
+	ld b, a ; Y
+	ld a, [hli]
+	ld c, a ; X
+	ld a, l
+	add 11
 	ld l, a	
 	
-	ld a, [backup2]
-	ld b, a
-	ld a, [backup3]
-	ld c, a
-	
-	ld d, HIGH(PPRC_UP)
-	ld a, [backup1]
-	ld e, a		
-	;halt
 	ld a, 10
-.placePlane_SetCoords:
-	; backup8 stores the loop counter
-	ld [backup1],a
+.setCoords:
+	; backup1 stores the loop counter
+	ld [backup1],a	
 	
 	; set Y coord
-	ld a, [hl]
-	ld a, [de]
+	ld a, [hl]	
 	add a, b
-	ld [hli], a
-	inc e
+	ld [hli], a	
 	; set X coord
-	ld a, [hl]
-	ld a, [de]
+	ld a, [hl]	
 	add a, c
-	ld [hli], a
-	inc e
+	ld [hli], a	
 	
 	; hl+=2
 	inc l
 	inc l
-	
-	;ld a, l
-	;add a, 2
-	;ld l, a
-	
-.chPlaneV_restoreA:
+		
 	ld a, [backup1]
 	dec a	
 	cp 0
-	jr nz, .placePlane_SetCoords	
-
-	ret ; placePlane
-;--------------------------------------------------------------------
-
-; hidePlane
-; a = target plane [0..2]
-hidePlane:
-	ld b, 144
-	ld c, 160
-	ld d, 1
-	call placePlane
+	jr nz, .setCoords	
+	
+	;prepare to Write OAM
+	ld a, l
+	sub 40
+	ld l, a	
+	; perform de = hl :
+	ld a, h
+	ld d, a
+	ld a, l
+	ld e, a		
+	call crtWriteToOamData
 	ret
+;--------------------------------------------------------------------	
+
+
+crtHide:	
+	call crtLoadAddressToHL		
+	ld b, 160 ; Y	
+	ld c, 160 ; X
+	ld a, l
+
+	add 11
+	ld l, a		
+	ld a, 10
+.setCoords:
+	; backup1 stores the loop counter
+	ld [backup1],a	
+	
+	; set Y coord
+	ld a, b	
+	ld [hli], a	
+	; set X coord	
+	ld a, c
+	ld [hli], a	
+	
+	; hl+=2
+	inc l
+	inc l
+		
+	ld a, [backup1]
+	dec a	
+	cp 0
+	jr nz, .setCoords	
+	
+	;prepare to Write OAM
+	ld a, l
+	sub 40
+	ld l, a	
+	; perform de = hl :
+	ld a, h
+	ld d, a
+	ld a, l
+	ld e, a		
+	call crtWriteToOamData
+	ret
+
+;--------------------------------------------------------------------	
+
+initPlanes:
+	ld a, 0
+	ld [crtTurn], a
+	
+.init
+	ld a, 0
+	ld [crtPlane], a
+	call crtSetAddress	
+	ld bc, $A0A0
+	ld d, $00
+	call crtSetPosition
+	call crtCreateOAM
+	
+	ld a, 1
+	ld [crtPlane], a
+	call crtSetAddress	
+	ld bc, $A0A0
+	ld d, $00
+	call crtSetPosition
+	call crtCreateOAM
+	
+	ld a, 2
+	ld [crtPlane], a
+	call crtSetAddress
+	ld bc, $A0A0
+	ld d, $00
+	call crtSetPosition
+	call crtCreateOAM
+	
+	ld a, [crtTurn]
+	cp a, 0	
+	ld a, 1
+	ld [crtTurn], a
+	jr z, .init		
+	ret
+	
+;--------------------------------------------------------------------	
+
+hideBoard:
+	ld a, [crtPlane]
+	ld [backup2], a
+	
+	ld a, 0
+	ld [crtPlane], a
+	call crtSetAddress		
+	call crtHide
+	
+	ld a, 1
+	ld [crtPlane], a
+	call crtSetAddress	
+	call crtHide
+	
+	ld a, 2
+	ld [crtPlane], a
+	call crtSetAddress
+	call crtHide	
+		
+	ld a, [backup2]
+	ld [crtPlane], a
+	call crtSetAddress
+	ret
+;--------------------------------------------------------------------	
+
+showBoard:
+	ld a, [crtPlane]
+	ld [backup2], a
+	
+	ld a, 0
+	ld [crtPlane], a
+	call crtSetAddress	
+	call crtCreateOAM
+	
+	ld a, 1
+	ld [crtPlane], a
+	call crtSetAddress
+	call crtCreateOAM
+	
+	ld a, 2
+	ld [crtPlane], a
+	call crtSetAddress
+	call crtCreateOAM
+	
+	ld a, [backup2]	
+	ld [crtPlane], a
+	call crtSetAddress
+	ret
+	
+;--------------------------------------------------------------------	
+
+; b = dY
+; c = dX
+crtMove:
+	call crtLoadAddressToHL			
+	inc l
+	inc l
+	ld a, [hl]
+	ld d, a ; d = orientation
+	dec l
+	dec l   
+	
+	ld a, d
+	and $08 ; catch Orientation LEFT (0x28) and RIGHT (0x78)
+	jr nz, .setDimForLeftRight
+	ld d, 8*7 ; Y
+	ld e, 8*6 ; X
+	jr .loadAndCompare
+.setDimForLeftRight
+	ld d, 8*6 ; Y
+	ld e, 8*7 ; X 
+.loadAndCompare
+	ld a, [hl]
+	add b		
+	cp -8
+	ret z	
+	cp d
+	ret z
+	ld [hli], a
+	ld a, [hl]
+	add c
+	cp -8	
+	ret z
+	cp e
+	ret z
+	ld [hli], a	
+	call crtCreateOAM	
+	ret
+
+crtMoveUp:	
+	ld b, -8
+	ld c, 0
+	call crtMove
+	ret
+	
+crtMoveRight:	
+	ld b, 0
+	ld c, 8	
+	call crtMove
+	ret
+	
+crtMoveLeft:	
+	ld b, 0
+	ld c, -8
+	call crtMove
+	ret
+	
+crtMoveDown:	
+	ld b, 8
+	ld c, 0
+	call crtMove
+	ret
+	
+crtRotate:
+	call crtLoadAddressToHL
+	inc l
+	inc l
+	ld a, [hl]
+	add 40
+	cp 160
+	jr nz, .fin
+	ld a, 0
+.fin:
+	ld [hl], a
+	ld d, a
+	; check if bottom and right sides exceeded
+	dec l	
+	ld a, [hl]
+	ld c, a
+	dec l
+	ld a, [hl]
+	ld b, a
+	
+	ld a, d
+	and $08 ; catch Orientation LEFT (0x28) and RIGHT (0x78)
+	jr nz, .checkLeftRight	
+	ld a, c
+	cp 8*6
+	jr nz, .keep
+	ld c, 8*5
+.checkLeftRight
+	ld a, b
+	cp 8*6
+	jr nz, .keep
+	ld b, 8*5
+.keep
+	ld a, b
+	ld [hli], a
+	ld a, c
+	ld [hli], a
+	
+	call crtCreateOAM
+	ret
+
+crtNext:
+	ld a, [crtPlane]
+	cp 2
+	ret z
+	inc a
+	ld [crtPlane], a
+	call crtSetAddress
+	ld b, 0
+	ld c, 0
+	ld d, PLANE_UP
+	call crtSetPosition		
+	call crtCreateOAM	
+	ret
+	
+crtUndo:
+	ld a, [crtPlane]
+	cp 0
+	ret z
+	call crtHide
+	ld a, [crtPlane]
+	dec a	
+	ld [crtPlane], a
+	call crtSetAddress	
+	call crtCreateOAM
+	ret
+	
+	
+	
+	
+	

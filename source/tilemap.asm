@@ -1,7 +1,7 @@
-updateMapScroll:
+updateMapScroll:	
 	ld a, [scrollFlag]
 	cp a, SCROLL_FLAG_0
-	ret z
+	jr z, .checkBoardState	
 	jr c, .scrollFlag_lt_0x80	
 .scrollFlag_gt_0x80
 	dec a
@@ -23,3 +23,10 @@ updateMapScroll:
 	inc a
 	ld [rSCY], a
 	ret
+.checkBoardState
+	ld a, [scrollInvalidate]
+	cp a, 0
+	ret z
+	call showBoard		
+	ret
+	

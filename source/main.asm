@@ -5,27 +5,9 @@ INCLUDE "inc/header.asm"
 
 INCLUDE "inc/input.asm"
 
-SECTION "Work Ram", WRAM0[$C000]
+INCLUDE "inc/wram_vars.asm"
 
-; tells the cpu when to scroll map from "YOU" to "OP" and vice-versa
-; scrollFlag > $80 ==> scroll from (112,112) to (0,0)
-; scrollFlag < $80 ==> scroll from (0,0) to (112,112)
-scrollFlag:
-	DS 1
-backup1:
-	DS 1
-backup2:
-	DS 1
-backup3:
-	DS 1
-planesY:
-	DS 4
-planesX:
-	DS 4
 	
-currentPlane: ; 0, 1, 2
-	DS 1 
-
 ; planeXData:
 ;
 ; byte 0: visible ? 1 : 0
@@ -81,10 +63,10 @@ Start:
 	;ld bc, TilemapEnd - Tilemap
 	;call loadMemory				
 	
-	ld hl, planesOamData
-	ld de, planesTemplate
-	ld bc, 160
-	call loadMemory		
+	;ld hl, planesOamData
+	;ld de, planesTemplate
+	;ld bc, 160
+	;call loadMemory		
 	
 	xor a ; ld a, 0		
     ld [rSCX], a	
@@ -105,7 +87,7 @@ Start:
 	.titleLoop
 		call updateJoypadState
 		ld   a, [wJoypadState]
-		and a, $02		
+		and a, PADF_A		
 		cp a, 0		
 		jr nz, .ENTRYPOINT_Board
 		call waitForVBlank		
@@ -113,12 +95,12 @@ Start:
 	
 ;---------------------------------------------------------------
 	
-.ENTRYPOINT_Board:	
+.ENTRYPOINT_Board:		
 	; init scroll flag
 	ld a, SCROLL_FLAG_0 ;- 112	
 	ld [scrollFlag], a
 	
-	call waitForVBlank
+	call waitForVBlank	
 	
 	; Turn off the LCD	
     xor a
@@ -128,57 +110,95 @@ Start:
 	ld de, Tilemap
 	ld bc, TilemapEnd - Tilemap
 	call loadMemory	
-		
-	; Turn on sprites 
-    ld a, %10000011
-    ld [rLCDC], a
-
-	ld a, PLANE_ID_0
+	
+	call clearOAM
+	call initPlanes	
+	
+	ld a, 1
+	ld [crtTurn], a
+	ld a, 0
+	ld [crtPlane], a
+	call crtSetAddress		
 	ld b, 0
 	ld c, 0
 	ld d, PLANE_UP
-	call placePlane
-
-	ld a, PLANE_ID_1
+	call crtSetPosition		
+	call crtCreateOAM		
+		
+	ld a, 0
+	ld [crtTurn], a
+	ld a, 0
+	ld [crtPlane], a
+	call crtSetAddress		
 	ld b, 0
-	ld c, 40
-	ld d, PLANE_UP
-	call placePlane
+	ld c, 0
+	ld d, PLANE_DOWN
+	call crtSetPosition		
+	call crtCreateOAM			
 	
-	ld a, PLANE_ID_2
-	ld b, 0
-	ld c, 80
-	ld d, PLANE_UP
-	call placePlane
 	
-	ld a, PLANE_ID_0
-	call hidePlane
+	ld a, 0
+	ld [crtTurn], a	
+			
+	call hideBoard
+	call showBoard			
 	
-	ld a, PLANE_ID_1
-	call hidePlane
+	;call crtMoveRight
+	; Turn on sprites 
+    ld a, %10000011
+    ld [rLCDC], a		
+	
+	xor a	
+	;ld a, 112
+    ld [rSCX], a	
+    ld [rSCY], a			
 
-	ld a, PLANE_ID_2
-	call hidePlane	
-	
-	ld a, PLANE_ID_3
-	call hidePlane
-	
-	
-	;halt
 	ld  a, HIGH(planesOamData)
 	call hOAMDMA	
 
-	;call nextBoard
-.loop		    
+	
+	ld a, 0	
+.boardLoop		    	
 	call updateJoypadState
 	call updateMapScroll
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_UP
+	call nz, crtMoveUp
+	
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_RIGHT			
+	call nz, crtMoveRight
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_LEFT		
+	call nz, crtMoveLeft
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_DOWN			
+	call nz, crtMoveDown
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_SELECT			
+	call nz, crtRotate
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_A			
+	call nz, crtNext
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_B		
+	call nz, crtUndo
+	
 	ld   a, [wJoypadState]
-	and a, PADF_START		
-	cp a, 0		
+	and a, PADF_START			
 	call nz, nextBoard
-.draw				
+.draw					  
 	call waitForVBlank
-    jr .loop
+	ld  a, HIGH(planesOamData)
+	call hOAMDMA	
+    jr .boardLoop
 
 
 
