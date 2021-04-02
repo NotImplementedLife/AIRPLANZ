@@ -1,6 +1,7 @@
 nextBoard:
-	call showBoard
-	call hideBoard
+	ld a, 0
+	ld [crtPlane], a		
+	call hideBoard    	
 	ld a, [scrollFlag]
 	cp a, SCROLL_FLAG_0
 	ret nz

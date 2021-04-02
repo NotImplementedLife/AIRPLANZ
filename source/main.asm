@@ -136,9 +136,13 @@ Start:
 
 	
 	ld a, 0	
-.planePlacementLoop		    	
+.planePlacementLoop		    		
 	call updateJoypadState
 	call updateMapScroll
+	
+	ld a, [scrollFlag]
+	cp SCROLL_FLAG_0
+	jr nz, .PPL_draw
 	
 	ld   a, [wJoypadPressed]
 	and a, PADF_UP
@@ -169,16 +173,74 @@ Start:
 	and a, PADF_B		
 	call nz, crtUndo
 	
-	ld   a, [wJoypadState]
+	ld   a, [wJoypadPressed]
 	and a, PADF_START			
-	call nz, nextBoard	
+	jr nz, .ENTRYPOINT_Pass
+	;call nz, nextBoard	
+	
 	call crtBlink
-.draw					  
+.PPL_draw					  
 	call waitForVBlank	
 	ld  a, HIGH(planesOamData)
 	call hOAMDMA	    	
 	jr .planePlacementLoop
 
+.ENTRYPOINT_Pass:
+	
+	call hideBoard	
+	ld  a, HIGH(planesOamData)
+	call hOAMDMA	  
+	
+	call waitForVBlank	
+	; Turn off the LCD	
+    xor a
+    ld [rLCDC], a     
+		
+	; copy tiles to VRAM
+	ld hl, SCREEN_PTR
+	ld de, PassScreen
+	ld bc, PassScreenEnd - PassScreen
+	call loadMemory
+	
+	; Turn on the LCD
+	ld a, %10000011
+    ld [rLCDC], a		
+		
+.passLoop
+	call updateJoypadState
+	ld   a, [wJoypadPressed]
+	and a, PADF_START			
+	jr nz, .returnToBoard
+	call waitForVBlank
+	jr .passLoop
+
+.returnToBoard
+	; reinit the screen
+	call waitForVBlank	
+	; Turn off the LCD	
+    xor a
+    ld [rLCDC], a     
+		
+	; copy tiles to VRAM
+	ld hl, SCREEN_PTR
+	ld de, Tilemap
+	ld bc, TilemapEnd - Tilemap
+	call loadMemory
+	
+	; Turn on the LCD
+	ld a, %10000011
+    ld [rLCDC], a	
+	
+	call hideBoard
+	call showBoard
+	call hideBoard
+	
+	ld  a, HIGH(planesOamData)
+	call hOAMDMA	
+	call nextBoard
+	jp .planePlacementLoop
+	
+	
 
 
 SECTION "FONT", ROM0
@@ -197,6 +259,10 @@ Tilemap:
 INCLUDE "res/tilemap.asm"
 TilemapEnd:
 
+PassScreen:
+INCLUDE "res/passmsg.asm"
+PassScreenEnd:
+
 SECTION "Strings", ROM0
 
 Str_PLAY:
@@ -207,4 +273,8 @@ Str_CRB:
 	db $01, $4E, $6F, $74, $49, $6D, $70, $6C, $65, $6D, $65, $6E, $74, $65, $64, $4C
 	db $69, $66, $65, $01, $31, $38, $31, $32, $31, $32, $32, $30, $31, $30, $30, $35
 	db $00
+Str_PASS1:
+	db "  Pass the GAMEBOY  ____________ to the next PLAYER ____________",$00
+Str_PASS2:	
+	db " Then Press START ", $00
 	
