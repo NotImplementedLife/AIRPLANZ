@@ -175,7 +175,7 @@ Start:
 	
 	ld   a, [wJoypadPressed]
 	and a, PADF_START			
-	jr nz, .ENTRYPOINT_Pass
+	jr nz, .startPressed
 	;call nz, nextBoard	
 	
 	call crtBlink
@@ -183,6 +183,11 @@ Start:
 	call waitForVBlank	
 	ld  a, HIGH(planesOamData)
 	call hOAMDMA	    	
+	jr .planePlacementLoop
+
+.startPressed:
+	call checkBoardValidity		
+	jr z, .ENTRYPOINT_Pass ; if board valid, go to PASS screen	
 	jr .planePlacementLoop
 
 .ENTRYPOINT_Pass:

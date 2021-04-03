@@ -310,30 +310,35 @@ crtMove:
 	ld [hli], a	
 	call crtCreateOAM	
 	ret
+;--------------------------------------------------------------------	
 
 crtMoveUp:	
 	ld b, -8
 	ld c, 0
 	call crtMove
 	ret
+;--------------------------------------------------------------------	
 	
 crtMoveRight:	
 	ld b, 0
 	ld c, 8	
 	call crtMove
 	ret
+;--------------------------------------------------------------------	
 	
 crtMoveLeft:	
 	ld b, 0
 	ld c, -8
 	call crtMove
 	ret
+;--------------------------------------------------------------------	
 	
 crtMoveDown:	
 	ld b, 8
 	ld c, 0
 	call crtMove
 	ret
+;--------------------------------------------------------------------	
 	
 crtRotate:
 	call crtLoadAddressToHL
@@ -375,6 +380,7 @@ crtRotate:
 	
 	call crtCreateOAM
 	ret
+;--------------------------------------------------------------------	
 
 crtNext:
 	ld a, [crtPlane]
@@ -386,6 +392,7 @@ crtNext:
 	call crtCreateOAM
 	call showBoard
 	ret
+;--------------------------------------------------------------------	
 	
 crtUndo:
 	ld a, [crtPlane]
@@ -398,6 +405,7 @@ crtUndo:
 	call crtCreateOAM
 	call showBoard
 	ret
+;--------------------------------------------------------------------	
 	
 crtBlink:
 	ld a, [scrollFlag]
@@ -434,10 +442,93 @@ crtBlink:
 	ld d, a
 	ld a, l
 	ld e, a		
-	call crtWriteToOamData
-	
+	call crtWriteToOamData	
 	ret
+;--------------------------------------------------------------------	
+
+; checkOverlapping
+; de = plane address 1
+; hl = plane address 2
+; sets FLAG Z if the two planes are OVERLAPPPING
+checkOverlapping:
+	ld a, 10
+.outerLoop
+	; backup1 stores the loop counter
+	ld [backup2], a
 	
+	ld a, [de]
+	ld b, a ; load Y
+	inc e
+	ld a, [de]
+	ld c, a ; load X
+	
+	ld a, 10
+.innerLoop:
+	; backup1 stores the loop counter
+	ld [backup1],a	
+	
+	ld a, [hli]	
+	cp b               ; compare Y coords 
+	jr nz, .continue
+	; if cursor reaches this, the Y1==Y2 so we compare X1, X2	
+	ld a, [hl]	
+	cp c               ; compare Y coords 	
+	ret z              ; X1==X2 && Y1==Y2 => set Z = 1		
+	
+.continue
+	REPT 3
+		inc l			
+	ENDR
+	ld a, [backup1]
+	dec a	
+	cp 0
+	jr nz, .innerLoop	
+		
+	REPT 3
+		inc e				
+	ENDR
+	
+	ld a, l
+	sub 40 ; reset hl
+	ld l, a	
+	
+	ld a, [backup2]
+	dec a	
+	cp 0
+	jr nz, .outerLoop	
+	
+	
+	ld a, 1
+	cp 0		
+	ret                ; everything ok, set Z = 0
+	
+;--------------------------------------------------------------------	
+	
+; checkBoardValidity
+checkBoardValidity:
+	ld de, planesOamData
+	ld hl, planesOamData + 40	
+	call checkOverlapping		
+	jr z, .false 
+	
+	ld de, planesOamData
+	ld hl, planesOamData + 80	
+	call checkOverlapping		
+	jr z, .false 
+	
+	ld de, planesOamData + 40
+	ld hl, planesOamData + 80	
+	call checkOverlapping		
+	jr z, .false 	
+	
+.true:
+	ld a, 0
+	cp 0
+	ret       ; Z = 1
+.false:
+	ld a, 1
+	cp 0	
+	ret       ; Z = 0
 	
 	
 	
