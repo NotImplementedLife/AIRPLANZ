@@ -39,14 +39,17 @@ crtLoadAddressToHL:
 ; b = Y
 ; c = X
 ; d = O
+; e = $00/$10 [sprite]
 crtSetPosition:		
 	call crtLoadAddressToHL
 	ld a, b
-	ld [hli], a
+	ld [hli], a ; Y
 	ld a, c
-	ld [hli], a
+	ld [hli], a ; X
 	ld a, d
-	ld [hl], a
+	ld [hli], a ; O	
+	ld a, e
+	ld [hl], a  ; S  
 	ret
 ;--------------------------------------------------------------------
 
@@ -75,16 +78,21 @@ crtCreateOAM:
 	call crtLoadAddressToHL
 	inc l ; skip X
 	inc l ; skip Y
-	ld a, [hli]
+	; get Orientation
+	ld a, [hli] 
 	ld e, a
 	ld d, HIGH(planesTemplate0)
 	ld a, [crtTurn]
 	cp a, 0
 	jr z, .keepTemplate0
 	ld d, HIGH(planesTemplate1)
-.keepTemplate0
-	ld a, l
-	add 10 ; skip HITS
+.keepTemplate0:
+	; get hit texture
+	ld a, [hl]
+	ld [backup5], a ; hit texture
+	
+	ld a, l	
+	add 10 ; planification mistake should have been "add 1"
 	ld l, a
 	ld bc, PLANE_OAM_SIZE
 	call loadMemory
@@ -114,8 +122,21 @@ crtCreateOAM:
 	ld a, [hl]	
 	add a, c
 	ld [hli], a	
+
+	; set sprite
+	ld a, [backup5]
+	cp 0
+	jr z, .endSetSprite
+	cp $10	
+	jr nz, .hideSprite
+	add [hl]
+	ld [hl], a
+	jr .endSetSprite
+.hideSprite
+	ld a, $EE ; a blank sprite
+	ld [hl], a
+.endSetSprite
 	
-	; hl+=2
 	inc l
 	inc l
 		
@@ -133,52 +154,43 @@ crtCreateOAM:
 	ld d, a
 	ld a, l
 	ld e, a		
+	
 	call crtWriteToOamData
 	ret
 ;--------------------------------------------------------------------	
 
 
 crtHide:	
-	call crtLoadAddressToHL		
-	ld b, 160 ; Y	
-	ld c, 160 ; X
-	ld a, l
-
-	add 11
-	ld l, a		
-	ld a, 10
-.setCoords:
-	; backup1 stores the loop counter
-	ld [backup1],a	
-	
-	; set Y coord
-	ld a, b	
-	ld [hli], a	
-	; set X coord	
-	ld a, c
-	ld [hli], a	
-	
-	; hl+=2
-	inc l
-	inc l
-		
-	ld a, [backup1]
-	dec a	
-	cp 0
-	jr nz, .setCoords	
-	
-	;prepare to Write OAM
-	ld a, l
-	sub 40
-	ld l, a	
-	; perform de = hl :
-	ld a, h
-	ld d, a
-	ld a, l
-	ld e, a		
-	call crtWriteToOamData
+	call crtLoadAddressToHL			
+	inc l ; skip Y
+	inc l ; skip X
+	inc l ; skip O
+	ld a, 1
+	ld [hl], a
+	call crtCreateOAM
 	ret
+;--------------------------------------------------------------------	
+crtShow:	
+	call crtLoadAddressToHL			
+	inc l ; skip Y
+	inc l ; skip X
+	inc l ; skip O
+	ld a, 0
+	ld [hl], a
+	call crtCreateOAM
+	ret	
+;--------------------------------------------------------------------
 
+; show the current plane using $FX sprites
+crtShowDots:	
+	call crtLoadAddressToHL		
+	ld a, l
+	add 3
+	ld l, a 	
+	ld a, $10
+	ld [hl], a ; 
+	call crtCreateOAM	
+	ret
 ;--------------------------------------------------------------------	
 
 initPlanes:
@@ -191,14 +203,16 @@ initPlanes:
 	call crtSetAddress	
 	ld bc, $0000
 	ld d, $00
+	ld e, $00
 	call crtSetPosition
-	call crtCreateOAM
+	call crtCreateOAM	
 	
 	ld a, 1
 	ld [crtPlane], a
 	call crtSetAddress	
 	ld bc, $0000
 	ld d, $00
+	ld e, $00
 	call crtSetPosition
 	call crtCreateOAM
 	
@@ -207,6 +221,7 @@ initPlanes:
 	call crtSetAddress
 	ld bc, $0000
 	ld d, $00
+	ld e, $00
 	call crtSetPosition
 	call crtCreateOAM	
 	
@@ -219,7 +234,6 @@ initPlanes:
 	ld a, 0
 	ld [crtPlane], a	
 	ret
-	
 ;--------------------------------------------------------------------	
 
 hideBoard:
@@ -229,17 +243,17 @@ hideBoard:
 	ld a, 0
 	ld [crtPlane], a
 	call crtSetAddress		
-	call crtHide
+	call crtHide	
 	
 	ld a, 1
 	ld [crtPlane], a
 	call crtSetAddress	
-	call crtHide
+	call crtHide	
 	
 	ld a, 2
 	ld [crtPlane], a
 	call crtSetAddress
-	call crtHide	
+	call crtHide		
 		
 	ld a, [backup2]
 	ld [crtPlane], a
@@ -254,23 +268,22 @@ showBoard:
 	ld a, 0
 	ld [crtPlane], a
 	call crtSetAddress	
-	call crtCreateOAM
+	call crtShow
 	
 	ld a, 1
 	ld [crtPlane], a
 	call crtSetAddress
-	call crtCreateOAM
+	call crtShow
 	
 	ld a, 2
 	ld [crtPlane], a
 	call crtSetAddress
-	call crtCreateOAM
+	call crtShow
 	
 	ld a, [backup2]	
 	ld [crtPlane], a
 	call crtSetAddress
 	ret
-	
 ;--------------------------------------------------------------------	
 
 ; b = dY
@@ -529,6 +542,87 @@ checkBoardValidity:
 	ld a, 1
 	cp 0	
 	ret       ; Z = 0
+	
+;--------------------------------------------------------------------	
+
+crtSetHit:
+	call crtLoadAddressToHL
+	ret
+	
+;--------------------------------------------------------------------	
+
+; crtCheckHit
+; check if current plane contains coordinates Y,X
+; b = test Y
+; c = test X
+; Output:
+; d = 0 => miss
+; d = 1 => hit
+; d = 2 => head
+
+crtCheckHit:
+	ld a, b
+	ld [backup2], a
+	ld a, c
+	ld [backup3], a
+	call crtLoadAddressToHL
+	ld a, [backup2]
+	ld b, a
+	ld a, [backup3]
+	ld c, a
+	
+	ld a, l
+	add 13
+	ld l, a
+	
+	;check for head
+	ld a, [hli]
+	cp b
+	jr nz, .skipHeadX	
+	
+	ld a, [hl]
+	cp c
+	jr nz, .skipHeadX
+	
+	; if still here, then it's a HEAD
+	ld d, 2
+	ret	
+	
+.skipHeadX
+	inc l
+	inc l
+	inc l
+	
+	; test the other sprites
+	ld a, 9
+.chkLoop
+	; store counter
+	ld [backup1], a 
+	ld a, [hli]
+	cp b
+	jr nz, .skipX
+	ld a, [hl]
+	cp c
+	jr nz, .skipX
+	
+	; here is a HIT
+	ld d, 1
+	ret
+	
+.skipX
+	inc l
+	inc l
+	inc l
+	ld a, [backup1]
+	dec a
+	cp a, 0	
+	jr nz, .chkLoop
+	
+	; here is a MISS
+	ld d, 0
+	ret ; crtCheckHit
+;--------------------------------------------------------------------	
+
 	
 	
 	

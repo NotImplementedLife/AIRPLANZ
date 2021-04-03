@@ -5,14 +5,15 @@ SCREEN_PTR     EQU $9800
 PLANE_OAM_SIZE EQU 40
 
 SCROLL_FLAG_0  EQU $80
-SCROLLPOS_YOU  EQU $00
-SCROLLPOS_OP   EQU 112
 
+; Plane orientations
 PLANE_UP       EQU 0
 PLANE_RIGHT    EQU 40
 PLANE_DOWN     EQU 80
 PLANE_LEFT     EQU 120
 
-PLANE_ID_0     EQU 0
-PLANE_ID_1     EQU 1
-PLANE_ID_2     EQU 2
+; boards positions on tile map
+P1_BoardY      EQU $03	
+P1_BoardX      EQU $06
+P2_BoardY      EQU $13
+P2_BoardX      EQU $12	

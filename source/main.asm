@@ -6,20 +6,6 @@ INCLUDE "inc/header.asm"
 INCLUDE "inc/input.asm"
 
 INCLUDE "inc/wram_vars.asm"
-
-	
-; planeXData:
-;
-; byte 0: visible ? 1 : 0
-; byte 1: Y (0-9)
-; byte 2: X (0-9)
-; byte 3: Orientation (0=Up 1=Right 2=Down 3=Left)
-plane1Data:
-	DS 4
-plane2Data:
-	DS 4
-plane3Data:
-	DS 4
 	
 INCLUDE "inc/oam.asm"
 
@@ -33,13 +19,14 @@ INCLUDE "source/title.asm"
 INCLUDE "source/tilemap.asm"
 INCLUDE "source/planes.asm"
 INCLUDE "source/board.asm"
+INCLUDE "source/attack.asm"
 
 Start:	
 	call waitForVBlank	
 	
     ; Turn off the LCD	
     xor a
-    ld [rLCDC],a 
+    ld [rLCDC],a 	
 	
 	; move DMA subroutine to HRAM
 	call CopyDMARoutine
@@ -118,10 +105,10 @@ Start:
 	ld a, 0
 	ld [crtTurn], a	
 			
-	call hideBoard
+	call hideBoard	
 	call showBoard			
-	
-	;call crtMoveRight
+	;call hideBoard
+		
 	; Turn on sprites 
     ld a, %10000011
     ld [rLCDC], a		
@@ -133,6 +120,7 @@ Start:
 
 	ld  a, HIGH(planesOamData)
 	call hOAMDMA	
+	;halt
 
 	
 	ld a, 0	
@@ -190,6 +178,9 @@ Start:
 	jr z, .ENTRYPOINT_Pass ; if board valid, go to PASS screen	
 	jr .planePlacementLoop
 
+
+;---------------------------------------------------------------	
+
 .ENTRYPOINT_Pass:
 	
 	call hideBoard	
@@ -239,13 +230,91 @@ Start:
 	call hideBoard
 	call showBoard
 	call hideBoard
+
+	ld a, [crtTurn]	
+	cp a, 1
+	jp z, .ENTRYPOINT_Attack
 	
 	ld  a, HIGH(planesOamData)
 	call hOAMDMA	
-	call nextBoard
+	call nextBoard		
 	jp .planePlacementLoop
 	
+;---------------------------------------------------------------
 	
+.ENTRYPOINT_Attack:	
+
+	; hide both boards
+	ld a, [crtTurn]
+	ld [backup1], a
+	
+	ld a, 0
+	ld [crtTurn], a
+	call hideBoard	
+	
+	ld a, 1
+	ld [crtTurn], a
+	call hideBoard	
+	
+	ld a, [backup1]
+	ld [crtTurn], a
+	
+	ld hl, atkStateP1
+	xor a
+	REPT 6
+		ld [hli], a	
+	ENDR
+
+	call waitForVBlank
+	
+	ld a, 0
+	ld [CoveredByPointer], a
+	call getBoardPosition
+	ld b, 0
+	ld c, 0
+	call setPointer	
+	
+.attackLoop
+	call updateJoypadState
+	call atkUpdateMapScroll		
+	ld a, [scrollFlag]
+	cp SCROLL_FLAG_0
+	jr nz, .attackDraw
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_UP
+	call nz, pointerMoveUp
+	
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_RIGHT			
+	call nz, pointerMoveRight
+		
+	ld   a, [wJoypadPressed]
+	and a, PADF_LEFT		
+	call nz, pointerMoveLeft
+		
+	ld   a, [wJoypadPressed]
+	and a, PADF_DOWN			
+	call nz, pointerMoveDown
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_A		
+	call nz, atkLaunch
+	
+	ld   a, [wJoypadPressed]
+	and a, PADF_START					
+	call nz, atkNextTurn
+.attackDraw	        
+    ; Turn screen on, display background
+    ld a, %10000011
+    ld [rLCDC], a	
+	call waitForVBlank	
+	ld  a, HIGH(planesOamData)
+	call hOAMDMA
+	jr .attackLoop	
+	
+;---------------------------------------------------------------
 
 
 SECTION "FONT", ROM0
