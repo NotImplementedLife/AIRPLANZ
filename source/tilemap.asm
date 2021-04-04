@@ -30,7 +30,12 @@ updateMapScroll:
 	ld a, 0
 	ld [scrollInvalidate], a
 	call showBoard		
+	call waitForVBlank
+	call waitForVBlank
+	call waitForVBlank
 	ret
+	
+
 	
 atkUpdateMapScroll:	
 	ld a, [scrollFlag]
@@ -68,7 +73,7 @@ atkUpdateMapScroll:
 	
 	ret
 	
-atkRefresh:
+atkRefresh:	
 	call hideBoard
 	; show only destroyed planes
 	call atkGetCrtState

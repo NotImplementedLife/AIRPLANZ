@@ -19,6 +19,14 @@ backup4:
 	DS 1
 backup5:
 	DS 1
+backup6:
+	DS 1
+backup7:
+	DS 1
+backup8:
+	DS 1
+backup9:
+	DS 1
 ; tells whose turn is ( 0 = YOU (P1), 1 = OP (P2) )
 crtTurn:
 	DS 1

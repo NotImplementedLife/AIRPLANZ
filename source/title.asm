@@ -23,7 +23,7 @@ drawTitleBackground:
 	ld hl, SCREEN_PTR+10*$20
     ld de, Str_PLAY
     call copyString
-	ld hl, SCREEN_PTR+16*$20
+	ld hl, SCREEN_PTR+15*$20
     ld de, Str_CRB
     call copyString
 	ret

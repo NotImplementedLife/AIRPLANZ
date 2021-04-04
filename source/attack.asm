@@ -75,6 +75,7 @@ getPointerPosition:
 ; b = pointerY
 ; c = pointerX
 setPointer:
+	;call waitForVBlank
 	; restore CoveredByPointer	
 	ld a, b
 	ld [backup2], a
@@ -175,6 +176,29 @@ pointerMoveRight:
 ;--------------------------------------------------------------------
 
 atkNextTurn:	
+	call atkGetCrtState
+	ld a, [atkCrtStatePtr]
+	ld h, a
+	ld a, [atkCrtStatePtr + 1]
+	ld l, a
+	
+	;ld b, b
+	
+	ld a, [hli]
+	cp 0
+	jr z, .proceed
+	
+	ld a, [hli]
+	cp 0
+	jr z, .proceed
+	
+	ld a, [hli]
+	cp 0
+	jr z, .proceed
+	
+	jp Start.ENTRYPOINT_GameOver
+	
+.proceed	
 	call waitForVBlank
 	xor a
     ld [rLCDC], a     
@@ -252,15 +276,30 @@ atkCheckHit:
 	ld a, d
 	cp 1
 	jr nz, .notHit
-	ld a, $DF ; HIT
+	ld a, $DE ; HIT
 	jr .drawTile
 .notHit
 	cp 2
-	jr nz, .miss
-	ld a, $DF ; HEAD	
+	jr nz, .miss		
+		
+	ld a, b
+	ld [backup1], a
+	ld a, h
+	ld [backup16], a	
+	ld a, l
+	ld [backup16 + 1], a
 	
 	call atkSetCrtDestroyed	
+	call atkSetPhantomCells
+	ld a, [backup16]
+	ld h, a
+	ld a, [backup16 + 1]
+	ld l, a
+	ld a, [backup1]
+	ld b, a
+	
 	ld e, 13
+	ld a, $DE ; HEAD
 	jr .drawTile
 .miss
 	ld a, [crtPlane]
@@ -270,15 +309,35 @@ atkCheckHit:
 	ld [crtPlane], a
 	jr .loop
 .setMiss
-	ld a, $DE ; MISS
-.drawTile	
-	ld l, a
+	ld a, $DF ; MISS
+.drawTile		
+	ld l, a	
 	ld [hl], b
 	ld [CoveredByPointer], a	
-	ld a, e
+	ld a, e	
 	cp 13
 	call z, atkRefresh
 	
+	; hide pointer
+	
+	ld a, [PointerY]
+	ld b, a
+	ld a, [PointerX]
+	ld c, a
+	call getPointerPosition		
+	
+	call waitForVBlank
+	ld a, [CoveredByPointer]
+	ld [hl], a
+	
+	ld c, 100
+.wait
+	call waitForVBlank ; force vblank
+	ld  a, HIGH(planesOamData) ; show sprites
+	call hOAMDMA
+	dec c	
+	jr nz, .wait
+	call atkNextTurn	
 	ret
 	
 ;--------------------------------------------------------------------
@@ -300,13 +359,8 @@ atkGetCrtState:
 
 ;--------------------------------------------------------------------
 
-atkSetCrtDestroyed:		
-	;ld [backup2], a
-	;ld a, h
-	;ld [backup16], a
-	;ld a, l
-	;ld [backup16 + 1], a
-	
+atkSetCrtDestroyed:			
+	;ld b, b
 	call atkGetCrtState
 	ld a, [atkCrtStatePtr]
 	ld h, a 
@@ -317,12 +371,7 @@ atkSetCrtDestroyed:
 	ld l, a
 	ld [hl], 1	
 	
-	
-	;ld a, [backup16]
-	;ld h, a
-	;ld a, [backup16 + 1]
-	;ld l, a
-	;ld a, [backup2]
+	;ld b, b		
 	ret
 
 ;--------------------------------------------------------------------
@@ -349,4 +398,84 @@ atkLaunch:
 	
 	ret
 ;--------------------------------------------------------------------
+	
+atkSetPhantomCells:
+	;call waitForVBlank
+	xor a
+    ld [rLCDC], a     
+	
+	ld a, [crtPlane]
+	call crtSetAddress
+	
+	ld a, [BoardTop]
+	ld b, a  ; Y	
+	ld a, [BoardLeft] 
+	ld c, a  ; X
+	
+	ld a, [BoardPosition]
+	ld h, a
+	ld a, [BoardPosition + 1]
+	ld l, a
+	
+	ld a, 10
+	
+.iterY
+	ld [backup6], a	
+	
+	ld a, [BoardLeft] 
+	ld c, a  ; X
+	
+	ld a, 10
+.iterX
+	ld [backup7], a	
+	
+	ld a, h
+	ld [backup8], a
+	ld a, l
+	ld [backup9], a
+	
+	call crtCheckHit
+	
+	ld a, [backup8]
+	ld h, a
+	ld a, [backup9]
+	ld l, a
+	;ld b, b
+	ld a, d
+	cp 1 ; if hit, replace board tile $DD with phantom tile $FE		
+	jr nz, .next	
+	ld a, [hl]
+	cp $DD
+	jr nz, .next
+	ld a, $FE
+	ld [hl], a
+	
+.next	
+	;ld b, b	
+	inc hl
+	ld a, c
+	add 8
+	ld c, a
+
+	
+	ld a, [backup7]
+	dec a
+	jr nz, .iterX
+	
+	ld a, b
+	add 8
+	ld b, a
+	
+	ld de, 22	
+	add hl, de
+	
+	ld a, [backup6]
+	dec a
+	jr nz, .iterY
+	
+	ld a, %10000011
+    ld [rLCDC], a	
+	call waitForVBlank
+	
+	ret
 	

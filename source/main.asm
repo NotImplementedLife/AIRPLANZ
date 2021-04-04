@@ -264,6 +264,8 @@ Start:
 	REPT 6
 		ld [hli], a	
 	ENDR
+	ld [PointerX], a
+	ld [PointerY], a
 
 	call waitForVBlank
 	
@@ -271,9 +273,8 @@ Start:
 	ld [CoveredByPointer], a
 	call getBoardPosition
 	ld b, 0
-	ld c, 0
-	call setPointer	
-	
+	ld c, 0	
+	call setPointer		
 .attackLoop
 	call updateJoypadState
 	call atkUpdateMapScroll		
@@ -316,6 +317,31 @@ Start:
 	
 ;---------------------------------------------------------------
 
+.ENTRYPOINT_GameOver:
+	call waitForVBlank
+	; Turn off the LCD	
+    xor a
+    ld [rLCDC], a     
+	
+	ld hl, SCREEN_PTR
+    ld de, Str_P2WIN
+    call copyString
+	
+	ld hl, SCREEN_PTR + $20*14 + 14
+    ld de, Str_P1WIN
+    call copyString
+	
+	; Turn on the LCD
+	ld a, %10000011
+    ld [rLCDC], a	
+.goDraw
+	call updateJoypadState
+	ld   a, [wJoypadPressed]
+	;jp nz, Start
+	
+	call waitForVBlank
+	jr .goDraw
+
 
 SECTION "FONT", ROM0
 
@@ -340,15 +366,18 @@ PassScreenEnd:
 SECTION "Strings", ROM0
 
 Str_PLAY:
-    db "    > 1 Gameboy     ____________      2 Gameboys", $00
+    db "     >  PLAY", $00
 Str_CRB:
+	db $01, $01, $01, $01 ,$01, $01, $01, $01, $32, $30, $32, $31, $01, $01, $01, $01
+	db $01, $01, $01, $01 ,$36, $35, $03, $39, $14, $31, $0D, $61, $47, $1D, $38, $39
 	db $01, $01, $01, $01, $01, $43, $72, $65, $61, $74, $65, $64, $01, $62, $79, $01
 	db $01, $01, $01, $01 ,$38, $35, $33, $31, $39, $39, $30, $33, $34, $33, $35, $38 
 	db $01, $4E, $6F, $74, $49, $6D, $70, $6C, $65, $6D, $65, $6E, $74, $65, $64, $4C
 	db $69, $66, $65, $01, $31, $38, $31, $32, $31, $32, $32, $30, $31, $30, $30, $35
 	db $00
-Str_PASS1:
-	db "  Pass the GAMEBOY  ____________ to the next PLAYER ____________",$00
-Str_PASS2:	
-	db " Then Press START ", $00
+Str_P1WIN:
+	db "      GAME  OVER                       P1  WINS", $00
+Str_P2WIN:
+	db "      GAME  OVER                       P2  WINS", $00
+
 	
