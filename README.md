@@ -58,7 +58,7 @@ bgb64 AIRPLANZ.gb
  - [GBDev](https://gbdev.io/ "GBDev") community for their kindness and willingness to help uninitiated people like me in terms of GBz80 (or whatever want to call it)
  - [alexhulk2002](https://github.com/alexhulk2002 "alexhulk202") for his idea of one-Gameboy gameplay. If it wasn't for him, I'd still be looking for ways to make two Gameboys communicate through a link cable, as I originally planned this project would do.
  - the anonymous hero who invented this game in its paper format
-
+ - Special thanks to [Antonio Vivace](https://github.com/avivace "avivace") for publishing the ROM on [Homebrew Hub](https://hh.gbdev.io/game/AIRPLANZ). As a matter of fact, AIRPLANZ is the lucky occupant of the 500th entry of the database 🎉
 ## Final thoughts
 
 This is a proof of concept. All I meant was to be functional. Performance wasn't a matter, so I could miss as many vBlanks as I wanted. The code is terrible. It gives me headaches. But I know that nothing is perfect and never could it be... I probably won't update AIRPLANZ unless I find some major errors/bugs/glitches that need to be fixed.
