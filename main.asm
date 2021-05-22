@@ -1,19 +1,24 @@
-INCLUDE "inc/hardware.inc"
+INCLUDE "../common/hardware.inc"
 INCLUDE "inc/constants.asm"
 
 INCLUDE "inc/header.asm"
 
-INCLUDE "inc/input.asm"
+INCLUDE "../common/inc/input.asm"
+INCLUDE "../common/inc/oam.asm"
+INCLUDE "../common/inc/splash.asm"
 
 INCLUDE "inc/wram_vars.asm"
 	
 INCLUDE "inc/oam.asm"
 
+INCLUDE "../common/res/AuthorCredit.asm"
+INCLUDE "../common/res/HomebrewOwlLogo.asm"
+
 
 SECTION "Main", ROM0
 
-INCLUDE "inc/memory.asm"
-INCLUDE "inc/vblank.asm"
+INCLUDE "../common/inc/memory.asm"
+INCLUDE "../common/inc/vblank.asm"
 
 INCLUDE "source/title.asm"
 INCLUDE "source/tilemap.asm"
@@ -21,7 +26,30 @@ INCLUDE "source/planes.asm"
 INCLUDE "source/board.asm"
 INCLUDE "source/attack.asm"
 
+
+;-Entry--------------------------------------------------------
+SplashScreen:
+;--------------------------------------------------SplashScreen
+	call doSplash	
+	jp Start	
+;--------------------------------------------------SplashScreen
+
 Start:	
+	call initInputWRAM	
+	
+	xor a
+	ld [scrollFlag], a
+	ld [scrollInvalidate], a
+	ld [backup1], a
+	ld [backup2], a
+	ld [backup3], a
+	ld [backup4], a
+	ld [backup5], a
+	ld [backup6], a
+	ld [backup7], a
+	ld [backup8], a
+	ld [backup9], a
+	
 	call waitForVBlank	
 	
     ; Turn off the LCD	
@@ -41,36 +69,28 @@ Start:
 	ld hl, TILES_PTR
     ld de, Tileset
     ld bc, TilesetEnd - Tileset
-	call loadMemory	
-		    
-	; draw main scene to screen
-	;call drawTitleBackground
-	;ld hl, SCREEN_PTR
-	;ld de, Tilemap
-	;ld bc, TilemapEnd - Tilemap
-	;call loadMemory				
-	
-	;ld hl, planesOamData
-	;ld de, planesTemplate
-	;ld bc, 160
-	;call loadMemory		
+	call loadMemory			  
 	
 	xor a ; ld a, 0		
     ld [rSCX], a	
-    ld [rSCY], a	
+    ld [rSCY], a		
 	
 ;---------------------------------------------------------------
 	
-.ENTRYPOINT_Title:	
-	call drawTitleBackground
+.ENTRYPOINT_Title:		
+	call drawTitleBackground	
 	
 	; Init display registers
     ld a, %00110110
-    ld [rBGP], a    	
+    ld [rBGP], a    
+	ld a, %11111111
+	ld [rOBP0], a
+	ld a, $00
+	ld [rOBP1], a	
 	 ; Turn screen on, display background
     ld a, %10000001
-    ld [rLCDC], a
-
+    ld [rLCDC], a		
+	
 	.titleLoop
 		call updateJoypadState
 		ld   a, [wJoypadState]
@@ -80,14 +100,14 @@ Start:
 		call waitForVBlank		
 	jr .titleLoop
 	
+	halt
+	
 ;---------------------------------------------------------------
 	
 .ENTRYPOINT_Board:		
 	; init scroll flag
 	ld a, SCROLL_FLAG_0 ;- 112	
 	ld [scrollFlag], a
-	
-	call waitForVBlank	
 	
 	; Turn off the LCD	
     xor a
@@ -98,6 +118,12 @@ Start:
 	ld bc, TilemapEnd - Tilemap
 	call loadMemory	
 	
+	ld a, HIGH(planesTemplate0)
+	call hOAMDMA		
+	ld a, [rLCDC]
+	or LCDCF_OBJON
+	ldh [rLCDC], a
+	
 	call clearOAM
 	call initPlanes		
 	
@@ -106,8 +132,7 @@ Start:
 	ld [crtTurn], a	
 			
 	call hideBoard	
-	call showBoard			
-	;call hideBoard
+	call showBoard				
 		
 	; Turn on sprites 
     ld a, %10000011
@@ -119,8 +144,7 @@ Start:
     ld [rSCY], a			
 
 	ld  a, HIGH(planesOamData)
-	call hOAMDMA	
-	;halt
+	call hOAMDMA		
 
 	
 	ld a, 0	
@@ -303,9 +327,9 @@ Start:
 	and a, PADF_A		
 	call nz, atkLaunch
 	
-	ld   a, [wJoypadPressed]
-	and a, PADF_START					
-	call nz, atkNextTurn
+	;ld   a, [wJoypadPressed]
+	;and a, PADF_START					
+	;call nz, atkNextTurn
 .attackDraw	        
     ; Turn screen on, display background
     ld a, %10000011
@@ -337,10 +361,35 @@ Start:
 .goDraw
 	call updateJoypadState
 	ld   a, [wJoypadPressed]
-	;jp nz, Start
+	and a, PADF_START
+	jr nz, .returnToTitle
 	
 	call waitForVBlank
 	jr .goDraw
+
+.returnToTitle
+	call waitForVBlank	
+	xor a
+	ld [rLCDC], a	
+	ld [rSCX], a
+	ld [rSCY], a
+	ld hl, $9800
+	ld bc, $0200
+	call fillMemory0
+	xor a
+	ld [scrollFlag], a
+	ld [scrollInvalidate], a
+	ld [backup1], a
+	ld [backup2], a
+	ld [backup3], a
+	ld [backup4], a
+	ld [backup5], a
+	ld [backup6], a
+	ld [backup7], a
+	ld [backup8], a
+	ld [backup9], a
+		
+	jp .ENTRYPOINT_Title
 
 
 SECTION "FONT", ROM0

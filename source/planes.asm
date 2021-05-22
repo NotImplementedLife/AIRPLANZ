@@ -2,6 +2,10 @@
 ; 	based on crtTurn and crtPlane, point crtAddress to 
 ; 	P<crtTurn>_Plane<crtPlane>
 crtSetAddress:
+	.waitVRAM
+    ldh a, [rSTAT]
+    and STATF_BUSY ; %0000_0010
+    jr nz, .waitVRAM
 	ld a, [crtTurn]	
 	cp a, 0
 	jr nz, .setBoard1
@@ -11,6 +15,10 @@ crtSetAddress:
 .setBoard1
 	ld hl, P2_Plane0	
 .choosePlane
+	.waitVRAM0
+    ldh a, [rSTAT]
+    and STATF_BUSY ; %0000_0010
+    jr nz, .waitVRAM0
 	ld a, [crtPlane]
 	cp a, 0
 	jr z, .fin	

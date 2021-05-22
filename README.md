@@ -2,6 +2,17 @@
 
 2 players - 1 Gameboy ROM written in Assembly
 
+This repo is part of [HomebrewOwl.GB](https://github.com/NotImplementedLife/HomebrewOwl.GB "HomebrewOwl.GB") projects collection.
+
+## _Version 1.1 (Latest)_
+
+What's new:
+
+- project integrated to HomebrewOwl
+- fixed memory access conflicts
+- fixed flickering when navigating to the next board on attack scene
+- when the game finishes, pressing Start will return to the title screen
+
 ## The idea
 
 After I got a taste of [how Nintendo DS programming feels like](https://github.com/NotImplementedLife/FSPDS "one silly project"), I realised that I was stubbornly avoiding the entire magic-driven world of retro graphics or, more exactly, the tiles-sprites ecosystem. The NDS's variety of background and video modes is a discouragingly hostile place for a newcomer like me who thought that displays do nothing but `getPixel()`/`setPixel()` routines. So (during one of my [shower thoughts](https://www.reddit.com/r/Showerthoughts/ "just a meaningless link")) it popped into my mind: _Hmm... Why don't I turn my attention to an older architecture in order to figure out how things actually work?_. And Gameboy was such an appealing target.
@@ -59,10 +70,12 @@ bgb64 AIRPLANZ.gb
  - [alexhulk2002](https://github.com/alexhulk2002 "alexhulk202") for his idea of one-Gameboy gameplay. If it wasn't for him, I'd still be looking for ways to make two Gameboys communicate through a link cable, as I originally planned this project would do.
  - the anonymous hero who invented this game in its paper format
  - Special thanks to [Antonio Vivace](https://github.com/avivace "avivace") for publishing the ROM on [Homebrew Hub](https://hh.gbdev.io/game/AIRPLANZ). As a matter of fact, AIRPLANZ is the lucky occupant of the 500th entry of the database 🎉
+
 ## Final thoughts
 
-This is a proof of concept. All I meant was to be functional. Performance wasn't a matter, so I could miss as many vBlanks as I wanted. The code is terrible. It gives me headaches. But I know that nothing is perfect and never could it be... I probably won't update AIRPLANZ unless I find some major errors/bugs/glitches that need to be fixed.
+This is a proof of concept. All I meant was to be functional. Performance wasn't a matter, so I could miss as many vBlanks as I wanted. The code is terrible. It gives me headaches. But I know that nothing is perfect and never could it be... ~~I probably won't update AIRPLANZ unless I find some major errors/bugs/glitches that need to be fixed.~~ _[Actually GBZ80 programming is very addictive tbh :) ]_
 
 ## Linked
 
 - [Gameboy ASM Examples](https://github.com/NotImplementedLife/Gameboy-ASM-Examples) - the playground I trained on for this "final boss" ROM.
+- [HomebrewOwl.GB](https://github.com/NotImplementedLife/HomebrewOwl.GB "HomebrewOwl.GB") - my other Gameboy projects

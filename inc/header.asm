@@ -1,5 +1,3 @@
-INCLUDE "inc/hardware.inc"
-
 SECTION "Restart $00", ROM0[$00]
   jp $100
 
@@ -44,7 +42,7 @@ SECTION "Header Padding", ROM0[$68]
 
 SECTION "Entrypoint", ROM0[$100]
   di
-  jp Start
+  jp SplashScreen
 
 SECTION "Nintendo Logo", ROM0[$104]
   NINTENDO_LOGO ; Defined in hardware.inc

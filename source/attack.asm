@@ -90,7 +90,14 @@ setPointer:
 	ld a, [CoveredByPointer]
 	cp 0 ; no tile to restore
 	jr z, .skipRestore
-	;halt
+	
+	push af	
+	.waitVRAM
+    ldh a, [rSTAT]
+    and STATF_BUSY ; %0000_0010
+    jr nz, .waitVRAM	
+	pop af
+	
 	ld [hl], a	
 .skipRestore
 
@@ -111,11 +118,15 @@ setPointer:
 	ld h, a
 	ld a, [PointerPosition + 1]
 	ld l, a
+		
+	.waitVRAM1
+    ldh a, [rSTAT]
+    and STATF_BUSY ; %0000_0010
+    jr nz, .waitVRAM1	
 	
-	; save CoveredByPointer
 	ld a, [hl]	
 	ld [CoveredByPointer], a
-	;halt
+	
 	; not draw the pointer tile
 	ld a, $FF
 	ld [hl], a		
@@ -200,8 +211,8 @@ atkNextTurn:
 	
 .proceed	
 	call waitForVBlank
-	xor a
-    ld [rLCDC], a     
+	;xor a
+    ;ld [rLCDC], a     
 	call getPointerPosition
 	ld a, [PointerPosition]
 	ld h, a
@@ -210,15 +221,22 @@ atkNextTurn:
 	ld a, [CoveredByPointer]
 	cp a, 0 ; no tile to restore
 	jr z, .skipRestore		
-	ld [hl], a	
+	push af
+	.waitVRAM	
+    ldh a, [rSTAT]
+    and STATF_BUSY ; %0000_0010
+    jr nz, .waitVRAM
+	pop af
+	ld [hl], a			
 .skipRestore
 
 	ld a, 0
 	ld [CoveredByPointer], a
 	
+	
 	call nextBoard
 	;call toggleOamVisibility	
-	call getBoardPosition
+	call getBoardPosition	
 	ld b, 0
 	ld c, 0
 	call setPointer
@@ -279,7 +297,7 @@ atkCheckHit:
 	ld a, $DE ; HIT
 	jr .drawTile
 .notHit
-	cp 2
+	cp 2 ; HEAD
 	jr nz, .miss		
 		
 	ld a, b
@@ -399,11 +417,7 @@ atkLaunch:
 	ret
 ;--------------------------------------------------------------------
 	
-atkSetPhantomCells:
-	;call waitForVBlank
-	xor a
-    ld [rLCDC], a     
-	
+atkSetPhantomCells:		
 	ld a, [crtPlane]
 	call crtSetAddress
 	
@@ -443,15 +457,18 @@ atkSetPhantomCells:
 	;ld b, b
 	ld a, d
 	cp 1 ; if hit, replace board tile $DD with phantom tile $FE		
-	jr nz, .next	
+	jr nz, .next		
+	.waitVRAM3
+    ldh a, [rSTAT]
+    and STATF_BUSY ; %0000_0010
+    jr nz, .waitVRAM3	
 	ld a, [hl]
 	cp $DD
 	jr nz, .next
 	ld a, $FE
 	ld [hl], a
 	
-.next	
-	;ld b, b	
+.next		
 	inc hl
 	ld a, c
 	add 8
@@ -472,9 +489,7 @@ atkSetPhantomCells:
 	ld a, [backup6]
 	dec a
 	jr nz, .iterY
-	
-	ld a, %10000011
-    ld [rLCDC], a	
+		
 	call waitForVBlank
 	
 	ret
