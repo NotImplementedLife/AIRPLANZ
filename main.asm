@@ -11,10 +11,6 @@ INCLUDE "inc/wram_vars.asm"
 	
 INCLUDE "inc/oam.asm"
 
-INCLUDE "../common/res/AuthorCredit.asm"
-INCLUDE "../common/res/HomebrewOwlLogo.asm"
-
-
 SECTION "Main", ROM0
 
 INCLUDE "../common/inc/memory.asm"
