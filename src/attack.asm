@@ -1,5 +1,9 @@
+INCLUDE "src/include/constants.inc"
+INCLUDE "src/include/hardware.inc"
+
+SECTION "Attack logic", ROM0
 ; BoardPosition = SCREEN_PTR + 20 * P<crtTurn>_BoardY + P<crtTurn>_BoardX 
-getBoardPosition:
+getBoardPosition::
 	ld a, [crtTurn]
 	cp a, 1
 	jr z, .set2
@@ -40,7 +44,7 @@ getBoardPosition:
 	ret
 ;--------------------------------------------------------------------
 
-getPointerPosition:
+getPointerPosition::
 	; hl = BoardPosition
 	ld a, [BoardPosition]
 	ld h, a
@@ -74,7 +78,7 @@ getPointerPosition:
 
 ; b = pointerY
 ; c = pointerX
-setPointer:
+setPointer::
 	;call waitForVBlank
 	; restore CoveredByPointer	
 	ld a, b
@@ -137,7 +141,7 @@ setPointer:
 	ret	
 ;--------------------------------------------------------------------
 
-pointerMoveUp:
+pointerMoveUp::
 	ld a, [PointerX]
 	ld c, a
 	ld a, [PointerY]
@@ -149,7 +153,7 @@ pointerMoveUp:
 	ret
 ;--------------------------------------------------------------------
 
-pointerMoveDown:
+pointerMoveDown::
 	ld a, [PointerX]
 	ld c, a
 	ld a, [PointerY]
@@ -162,7 +166,7 @@ pointerMoveDown:
 ;--------------------------------------------------------------------
 	
 
-pointerMoveLeft:
+pointerMoveLeft::
 	ld a, [PointerY]
 	ld b, a
 	ld a, [PointerX]
@@ -174,7 +178,7 @@ pointerMoveLeft:
 	ret
 ;--------------------------------------------------------------------
 
-pointerMoveRight:
+pointerMoveRight::
 	ld a, [PointerY]
 	ld b, a
 	ld a, [PointerX]
@@ -186,7 +190,7 @@ pointerMoveRight:
 	ret
 ;--------------------------------------------------------------------
 
-atkNextTurn:	
+atkNextTurn::	
 	call atkGetCrtState
 	ld a, [atkCrtStatePtr]
 	ld h, a
@@ -252,7 +256,7 @@ atkNextTurn:
 	ret
 ;--------------------------------------------------------------------
 
-atkCheckHit:
+atkCheckHit::
 	; b = BoardTop + 8 * PointerY
 	ld a, [PointerY]
 	REPT 3
@@ -360,7 +364,7 @@ atkCheckHit:
 	
 ;--------------------------------------------------------------------
 
-atkGetCrtState:
+atkGetCrtState::
 	ld a, [crtTurn]
 	cp a, 0
 	jr nz, .set1
@@ -377,7 +381,7 @@ atkGetCrtState:
 
 ;--------------------------------------------------------------------
 
-atkSetCrtDestroyed:			
+atkSetCrtDestroyed::			
 	;ld b, b
 	call atkGetCrtState
 	ld a, [atkCrtStatePtr]
@@ -394,7 +398,7 @@ atkSetCrtDestroyed:
 
 ;--------------------------------------------------------------------
 	
-atkLaunch:	
+atkLaunch::	
 	ld a, [PointerY]
 	ld b, a
 	ld a, [PointerX]
@@ -417,7 +421,7 @@ atkLaunch:
 	ret
 ;--------------------------------------------------------------------
 	
-atkSetPhantomCells:		
+atkSetPhantomCells::		
 	ld a, [crtPlane]
 	call crtSetAddress
 	

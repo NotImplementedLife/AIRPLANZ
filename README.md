@@ -2,16 +2,7 @@
 
 2 players - 1 Gameboy ROM written in Assembly
 
-This repo is part of [HomebrewOwl.GB](https://github.com/NotImplementedLife/HomebrewOwl.GB "HomebrewOwl.GB") projects collection.
-
-## _Version 1.1 (Latest)_
-
-What's new:
-
-- project integrated to HomebrewOwl
-- fixed memory access conflicts
-- fixed flickering when navigating to the next board on attack scene
-- when the game finishes, pressing Start will return to the title screen
+This repo is part of [HomebrewOwl.GB](https://github.com/NotImplementedLife/HomebrewOwl.GB "HomebrewOwl.GB") projects collection. Download the latest version [here](https://github.com/NotImplementedLife/AIRPLANZ/releases/download/1.2/AIRPLANZ_1_2.gb).
 
 ## The idea
 
@@ -77,5 +68,5 @@ This is a proof of concept. All I meant was to be functional. Performance wasn't
 
 ## Linked
 
-- [Gameboy ASM Examples](https://github.com/NotImplementedLife/Gameboy-ASM-Examples) - the playground I trained on for this "final boss" ROM.
+- [Gameboy ASM Examples](https://github.com/NotImplementedLife/Gameboy-ASM-Examples) - the playground I trained on for this ~~"final boss"~~ ROM.
 - [HomebrewOwl.GB](https://github.com/NotImplementedLife/HomebrewOwl.GB "HomebrewOwl.GB") - my other Gameboy projects

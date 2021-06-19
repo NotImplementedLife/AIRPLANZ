@@ -1,4 +1,8 @@
-drawTitleBackground:
+INCLUDE "src/include/constants.inc"
+
+SECTION "Title", ROM0
+
+drawTitleBackground::
 	ld b, $90
 	ld c, $00
 	ld hl, SCREEN_PTR+2

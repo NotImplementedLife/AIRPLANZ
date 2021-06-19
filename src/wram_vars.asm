@@ -4,48 +4,48 @@ SECTION "WRAM VARS - PLANE", WRAM0[$C000]
 ; tells the cpu when to scroll map from "YOU" to "OP" and vice-versa
 ; scrollFlag > $80 ==> scroll from (112,112) to (0,0)
 ; scrollFlag < $80 ==> scroll from (0,0) to (112,112)
-scrollFlag:
+scrollFlag::
 	DS 1
-scrollInvalidate:
+scrollInvalidate::
 	DS 1
 ; backup addresses for temporary storage
-backup1: 
+backup1::
 	DS 1
-backup2:
+backup2::
 	DS 1
-backup3:
+backup3::
 	DS 1
-backup4:
+backup4::
 	DS 1
-backup5:
+backup5::
 	DS 1
-backup6:
+backup6::
 	DS 1
-backup7:
+backup7::
 	DS 1
-backup8:
+backup8::
 	DS 1
-backup9:
+backup9::
 	DS 1
 ; tells whose turn is ( 0 = YOU (P1), 1 = OP (P2) )
-crtTurn:
+crtTurn::
 	DS 1
 ; used in plane manipulation process
 ; 0-first plane, 2-last plane
-crtPlane:
+crtPlane::
 	DS 1
 ; pointer to plane data, depends on crtTurn and crtPlane
-crtAddress:
+crtAddress::
 	DS 2
 	
 
-atkStateP1:
+atkStateP1::
 	DS 3
-atkStateP2:
+atkStateP2::
 	DS 3
-atkCrtStatePtr:
+atkCrtStatePtr::
 	DS 2
-backup16:
+backup16::
 	DS 2
 
 ; plane data
@@ -56,42 +56,35 @@ backup16:
 
 SECTION "WRAM Board 0 Plane Data", WRAM0[$C100]
 
-P1_Plane0:
+P1_Plane0::
 	DS 53
-P1_Plane1:
+P1_Plane1::
 	DS 53
-P1_Plane2:
+P1_Plane2::
 	DS 53
 	
 SECTION "WRAM Board 1 Plane Data", WRAM0[$C200]
-P2_Plane0:
+P2_Plane0::
 	DS 53
-P2_Plane1:
+P2_Plane1::
 	DS 53
-P2_Plane2:
+P2_Plane2::
 	DS 53
 
 SECTION "WRAM VARS - Attack", WRAM0[$C400]
 
 ; to know where to place the hits
-BoardPosition:
+BoardPosition::
 	DS 2
-BoardTop:
+BoardTop::
 	DS 1
-BoardLeft:
+BoardLeft::
 	DS 1
-PointerY:
+PointerY::
 	DS 1
-PointerX:
+PointerX::
 	DS 1
-PointerPosition:
+PointerPosition::
 	DS 2
-CoveredByPointer: ; tile Id
+CoveredByPointer:: ; tile Id
 	DS 1
-
-
-
-
-
-
-	

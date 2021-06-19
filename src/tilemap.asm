@@ -1,4 +1,9 @@
-updateMapScroll:	
+INCLUDE "src/include/constants.inc"
+INCLUDE "src/include/hardware.inc"
+
+SECTION "Tile map logic", ROM0
+
+updateMapScroll::	
 	ld a, [scrollFlag]
 	cp a, SCROLL_FLAG_0
 	jr z, .checkBoardState	
@@ -37,7 +42,7 @@ updateMapScroll:
 	
 
 	
-atkUpdateMapScroll:	
+atkUpdateMapScroll::
 	ld a, [scrollFlag]
 	cp a, SCROLL_FLAG_0
 	jr z, .checkBoardState	
@@ -73,7 +78,7 @@ atkUpdateMapScroll:
 	
 	ret
 	
-atkRefresh:	
+atkRefresh::	
 	call hideBoard
 	; show only destroyed planes
 	call atkGetCrtState

@@ -1,7 +1,12 @@
+INCLUDE "src/include/constants.inc"
+INCLUDE "src/include/hardware.inc"
+
+SECTION "Planes logic", ROM0
+
 ; ROUTINE :: crtSetAddress
 ; 	based on crtTurn and crtPlane, point crtAddress to 
 ; 	P<crtTurn>_Plane<crtPlane>
-crtSetAddress:
+crtSetAddress::
 	.waitVRAM
     ldh a, [rSTAT]
     and STATF_BUSY ; %0000_0010
@@ -48,7 +53,7 @@ crtLoadAddressToHL:
 ; c = X
 ; d = O
 ; e = $00/$10 [sprite]
-crtSetPosition:		
+crtSetPosition::	
 	call crtLoadAddressToHL
 	ld a, b
 	ld [hli], a ; Y
@@ -62,7 +67,7 @@ crtSetPosition:
 ;--------------------------------------------------------------------
 
 ; de = source
-crtWriteToOamData:
+crtWriteToOamData::
 	ld bc, 40 ; size of a plane OAM	
 	ld hl, planesOamData	
 	ld a, [crtPlane]
@@ -82,7 +87,7 @@ crtWriteToOamData:
 
 ; ROUTINE :: crtCreateOAM
 ; render OAM data
-crtCreateOAM:
+crtCreateOAM::
 	call crtLoadAddressToHL
 	inc l ; skip X
 	inc l ; skip Y
@@ -168,7 +173,7 @@ crtCreateOAM:
 ;--------------------------------------------------------------------	
 
 
-crtHide:	
+crtHide::	
 	call crtLoadAddressToHL			
 	inc l ; skip Y
 	inc l ; skip X
@@ -178,7 +183,7 @@ crtHide:
 	call crtCreateOAM
 	ret
 ;--------------------------------------------------------------------	
-crtShow:	
+crtShow::	
 	call crtLoadAddressToHL			
 	inc l ; skip Y
 	inc l ; skip X
@@ -190,7 +195,7 @@ crtShow:
 ;--------------------------------------------------------------------
 
 ; show the current plane using $FX sprites
-crtShowDots:	
+crtShowDots::	
 	call crtLoadAddressToHL		
 	ld a, l
 	add 3
@@ -201,7 +206,7 @@ crtShowDots:
 	ret
 ;--------------------------------------------------------------------	
 
-initPlanes:
+initPlanes::
 	ld a, 0
 	ld [crtTurn], a
 	
@@ -244,7 +249,7 @@ initPlanes:
 	ret
 ;--------------------------------------------------------------------	
 
-hideBoard:
+hideBoard::
 	ld a, [crtPlane]
 	ld [backup2], a
 	
@@ -269,7 +274,7 @@ hideBoard:
 	ret
 ;--------------------------------------------------------------------	
 
-showBoard:
+showBoard::
 	ld a, [crtPlane]
 	ld [backup2], a
 	
@@ -296,7 +301,7 @@ showBoard:
 
 ; b = dY
 ; c = dX
-crtMove:
+crtMove::
 	call crtLoadAddressToHL			
 	inc l
 	inc l
@@ -333,35 +338,35 @@ crtMove:
 	ret
 ;--------------------------------------------------------------------	
 
-crtMoveUp:	
+crtMoveUp::	
 	ld b, -8
 	ld c, 0
 	call crtMove
 	ret
 ;--------------------------------------------------------------------	
 	
-crtMoveRight:	
+crtMoveRight::	
 	ld b, 0
 	ld c, 8	
 	call crtMove
 	ret
 ;--------------------------------------------------------------------	
 	
-crtMoveLeft:	
+crtMoveLeft::	
 	ld b, 0
 	ld c, -8
 	call crtMove
 	ret
 ;--------------------------------------------------------------------	
 	
-crtMoveDown:	
+crtMoveDown::
 	ld b, 8
 	ld c, 0
 	call crtMove
 	ret
 ;--------------------------------------------------------------------	
 	
-crtRotate:
+crtRotate::
 	call crtLoadAddressToHL
 	inc l
 	inc l
@@ -403,7 +408,7 @@ crtRotate:
 	ret
 ;--------------------------------------------------------------------	
 
-crtNext:
+crtNext::
 	ld a, [crtPlane]
 	cp 2
 	ret z
@@ -415,7 +420,7 @@ crtNext:
 	ret
 ;--------------------------------------------------------------------	
 	
-crtUndo:
+crtUndo::
 	ld a, [crtPlane]
 	cp 0
 	ret z	
@@ -428,7 +433,7 @@ crtUndo:
 	ret
 ;--------------------------------------------------------------------	
 	
-crtBlink:
+crtBlink::
 	ld a, [scrollFlag]
 	cp SCROLL_FLAG_0
 	ret nz
@@ -471,7 +476,7 @@ crtBlink:
 ; de = plane address 1
 ; hl = plane address 2
 ; sets FLAG Z if the two planes are OVERLAPPPING
-checkOverlapping:
+checkOverlapping::
 	ld a, 10
 .outerLoop
 	; backup1 stores the loop counter
@@ -526,7 +531,7 @@ checkOverlapping:
 ;--------------------------------------------------------------------	
 	
 ; checkBoardValidity
-checkBoardValidity:
+checkBoardValidity::
 	ld de, planesOamData
 	ld hl, planesOamData + 40	
 	call checkOverlapping		
@@ -553,7 +558,7 @@ checkBoardValidity:
 	
 ;--------------------------------------------------------------------	
 
-crtSetHit:
+crtSetHit::
 	call crtLoadAddressToHL
 	ret
 	
@@ -568,7 +573,7 @@ crtSetHit:
 ; d = 1 => hit
 ; d = 2 => head
 
-crtCheckHit:
+crtCheckHit::
 	ld a, b
 	ld [backup2], a
 	ld a, c

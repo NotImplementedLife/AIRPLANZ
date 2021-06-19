@@ -1,11 +1,11 @@
 SECTION "OAM Data", WRAM0[$C300] 
 
 ; here goes the OAM data [writeable | Y,X,_,_]
-planesOamData:
+planesOamData::
 	DS 160
 	
 SECTION "Planes Template 0", ROM0, ALIGN[8]
-planesTemplate0:        ; CellType |  Pixel coordinates relative to top-left (X,Y)
+planesTemplate0::       ; CellType |  Pixel coordinates relative to top-left (X,Y)
 Board0FacingUp:               ;-----------------------------------------------------------
 DB $28, $48, $E0, $00,  ;    H     |	(2,0)
 DB $30, $38, $E1, $00,  ;    W0    |	(0,1)
@@ -52,7 +52,7 @@ DB $38, $50, $ED, $00,  ;    B2    |	(3,2)
 DB $40, $50, $EC, $00,  ;    T0    |	(3,3)
 							 ;-----------------------------------------------------------
 SECTION "Planes Template 1", ROM0, ALIGN[8]
-planesTemplate1:        ; CellType |  Pixel coordinates relative to top-left (X,Y)						
+planesTemplate1::       ; CellType |  Pixel coordinates relative to top-left (X,Y)						
 Board1FacingUp:               ;-----------------------------------------------------------
 DB $38, $38, $E0, $00,  ;    H     |	(2,0)
 DB $40, $28, $E1, $00,  ;    W0    |	(0,1)
@@ -115,7 +115,7 @@ DB $A0, $90, $EC, $80,
 
 SECTION "OAM", ROM0
 
-clearOAM:
+clearOAM::
 	ld bc, 40
 	ld hl, planesOamData + 0
 	ld de, OAMFiller

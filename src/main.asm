@@ -1,39 +1,13 @@
-INCLUDE "../common/hardware.inc"
-INCLUDE "inc/constants.asm"
-
-INCLUDE "inc/header.asm"
-
-INCLUDE "../common/inc/input.asm"
-INCLUDE "../common/inc/oam.asm"
-INCLUDE "../common/inc/splash.asm"
-
-INCLUDE "inc/wram_vars.asm"
-	
-INCLUDE "inc/oam.asm"
+INCLUDE "src/include/constants.inc"
+INCLUDE "src/include/hardware.inc"
+INCLUDE "src/include/macros.inc"
 
 SECTION "Main", ROM0
 
-INCLUDE "../common/inc/memory.asm"
-INCLUDE "../common/inc/vblank.asm"
-
-INCLUDE "source/title.asm"
-INCLUDE "source/tilemap.asm"
-INCLUDE "source/planes.asm"
-INCLUDE "source/board.asm"
-INCLUDE "source/attack.asm"
-
-
-;-Entry--------------------------------------------------------
-SplashScreen:
-;--------------------------------------------------SplashScreen
-	call doSplash	
-	jp Start	
-;--------------------------------------------------SplashScreen
-
-Start:	
-	call initInputWRAM	
-	
-	xor a
+Start::	
+	xor a	
+	ld [wJoypadState], a
+	ld [wJoypadPressed], a
 	ld [scrollFlag], a
 	ld [scrollInvalidate], a
 	ld [backup1], a
@@ -337,7 +311,7 @@ Start:
 	
 ;---------------------------------------------------------------
 
-.ENTRYPOINT_GameOver:
+.ENTRYPOINT_GameOver::
 	call waitForVBlank
 	; Turn off the LCD	
     xor a
@@ -391,28 +365,17 @@ Start:
 SECTION "FONT", ROM0
 
 FontTiles:
-INCBIN "res/font.chr"
+	INCBIN "res/font.chr"
 FontTilesEnd:
 
 SECTION "Tileset", ROM0
 
-Tileset:
-INCLUDE "res/tileset.asm"
-TilesetEnd:
-
-Tilemap:
-INCLUDE "res/tilemap.asm"
-TilemapEnd:
-
-PassScreen:
-INCLUDE "res/passmsg.asm"
-PassScreenEnd:
 
 SECTION "Strings", ROM0
 
-Str_PLAY:
+Str_PLAY::
     db "     >  PLAY", $00
-Str_CRB:
+Str_CRB::
 	db $01, $01, $01, $01 ,$01, $01, $01, $01, $32, $30, $32, $31, $01, $01, $01, $01
 	db $01, $01, $01, $01 ,$36, $35, $03, $39, $14, $31, $0D, $61, $47, $1D, $38, $39
 	db $01, $01, $01, $01, $01, $43, $72, $65, $61, $74, $65, $64, $01, $62, $79, $01

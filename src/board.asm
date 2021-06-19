@@ -1,4 +1,8 @@
-nextBoard:
+INCLUDE "src/include/constants.inc"
+INCLUDE "src/include/hardware.inc"
+
+SECTION "next board", ROM0
+nextBoard::
 	ld a, 0
 	ld [crtPlane], a		
 	call hideBoard    	
