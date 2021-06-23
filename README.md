@@ -64,4 +64,4 @@ This is a proof of concept. All I meant was to be functional. Performance wasn't
 ## Linked
 
 - [Gameboy ASM Examples](https://github.com/NotImplementedLife/Gameboy-ASM-Examples) - the playground I trained on for this ~~"final boss"~~ ROM.
-- [HomebrewOwl.GB](https://github.com/NotImplementedLife/HomebrewOwl.GB "HomebrewOwl.GB") - my other Gameboy projects
+- [HomebrewOwl.GB](https://github.com/NotImplementedLife/HomebrewOwl.GB "HomebrewOwl.GB") - check out my other Gameboy projects
