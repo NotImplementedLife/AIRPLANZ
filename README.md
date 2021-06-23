@@ -12,6 +12,18 @@ Several weeks passed since then without having researched anything, not to menti
 
 The last thing to decide on was... what game should I write? I've always dreamed about makng my own _Pokémon-like scroll RPG game_, but I wanted something faster to make. Many of the popular arcade-type games like Snake, TicTacToe, 2048 and even CHIP-8 already have Gameboy adaptations (or "ports", to sound more technical). Then I found the 'spark': it was with me everytime, everywhere. And I loved it. It's the game that, just like the guy in [this post](https://boardgamegeek.com/thread/946676/avioane-airplanes-game-battleship "Airplanes game battleship") states, _"In Romania [...] is very popular among students and it is played with pen and paper during recess and during class"_ - and I merely confirm that. So let's do an _Airplanes_ game for Gameboy. Wait a second... _A, I, R, ..._ (grown-up N•I•L uses his fingers to count all the nine letters). Oh, that's odd. Let's make it _Airplan<b>Z</b>_.
 
+## How to build
+
+```
+git clone https://github.com/NotImplementedLife/AIRPLANZ --recursive
+```
+
+```
+cd AIRPLANZ
+make
+```
+Make sure RGBDS is installed and exists in your `%PATH%`.
+
 ## How to play
 
 For those familiar with Battleship, it's basically the same game, but with airplanes and slightly modified rules.
@@ -37,23 +49,6 @@ It's a <b>2 players - 1 console</b> game, so you have to pass the Gameboy to you
  <img src="README_Resources/p1win.jpg"></img>
 
  _screenshot from Android emulator_
- 
-
-## How to build
-
-_(Windows method)_
-
-```
-rgbasm -o main.o source\main.asm
-rgblink -o AIRPLANZ.gb main.o
-rgbfix -v -p 0 AIRPLANZ.gb
-```
-
-## Run
-
-```
-bgb64 AIRPLANZ.gb
-```
 
 ## Credits
 
